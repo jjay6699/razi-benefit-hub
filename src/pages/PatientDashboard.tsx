@@ -95,18 +95,21 @@ export const PatientDashboard = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-muted/50 p-4">
-      <div className="container mx-auto max-w-6xl space-y-6">
+      <div className="container mx-auto max-w-4xl space-y-4 sm:space-y-6">
         {/* Header */}
-        <div className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground rounded-lg p-6">
-          <div className="flex items-center justify-between">
+        <div className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground rounded-lg p-4 sm:p-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-              <h1 className="text-3xl font-bold mb-2">Welcome, {profile?.full_name}</h1>
-              <p className="text-primary-foreground/90">Your Medical Benefit Portal</p>
+              <h1 className="text-2xl sm:text-3xl font-bold mb-1 sm:mb-2">
+                Welcome, {profile?.full_name?.split(' ')[0] || 'User'}
+              </h1>
+              <p className="text-primary-foreground/90 text-sm sm:text-base">Your Medical Benefit Portal</p>
             </div>
             <Button 
               variant="secondary" 
               onClick={handleSignOut}
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 self-start sm:self-auto"
+              size="sm"
             >
               <LogOut className="h-4 w-4" />
               Sign Out
@@ -116,86 +119,87 @@ export const PatientDashboard = () => {
 
         {!employee ? (
           <Card>
-            <CardContent className="p-8 text-center">
-              <AlertCircle className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-              <h2 className="text-xl font-semibold mb-2">Employee Record Not Found</h2>
-              <p className="text-muted-foreground mb-4">
+            <CardContent className="p-6 sm:p-8 text-center">
+              <AlertCircle className="h-12 w-12 sm:h-16 sm:w-16 text-muted-foreground mx-auto mb-4" />
+              <h2 className="text-lg sm:text-xl font-semibold mb-2">Employee Record Not Found</h2>
+              <p className="text-muted-foreground mb-4 text-sm sm:text-base">
                 We couldn't find your employee record in our system. Please contact your HR department or system administrator.
               </p>
               <div className="bg-muted rounded-lg p-4 text-left max-w-md mx-auto">
-                <h3 className="font-medium mb-2">Your Profile Information:</h3>
-                <p><strong>Name:</strong> {profile?.full_name}</p>
-                <p><strong>IC Number:</strong> {profile?.ic_number}</p>
-                <p><strong>Phone:</strong> {profile?.phone_number}</p>
-                <p><strong>Email:</strong> {user?.email}</p>
+                <h3 className="font-medium mb-2 text-sm sm:text-base">Your Profile Information:</h3>
+                <div className="space-y-1 text-xs sm:text-sm">
+                  <p><strong>Name:</strong> {profile?.full_name}</p>
+                  <p><strong>IC Number:</strong> {profile?.ic_number}</p>
+                  <p><strong>Phone:</strong> {profile?.phone_number}</p>
+                  <p><strong>Email:</strong> {user?.email}</p>
+                </div>
               </div>
             </CardContent>
           </Card>
         ) : (
           <>
             {/* Profile Information */}
-            <div className="grid gap-6 md:grid-cols-3">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <User className="h-5 w-5" />
-                    Profile Information
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    <div>
-                      <p className="text-sm text-muted-foreground">Full Name</p>
-                      <p className="font-medium">{profile?.full_name}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">IC Number</p>
-                      <p className="font-medium">{profile?.ic_number}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Employee ID</p>
-                      <p className="font-medium">{employee.empId}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Company</p>
-                      <p className="font-medium">{employee.companyName}</p>
-                    </div>
+            <Card>
+              <CardHeader className="pb-4">
+                <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+                  <User className="h-4 w-4 sm:h-5 sm:w-5" />
+                  Profile Information
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-xs sm:text-sm text-muted-foreground mb-1">Full Name</p>
+                    <p className="font-medium text-sm sm:text-base">{profile?.full_name}</p>
                   </div>
-                </CardContent>
-              </Card>
+                  <div>
+                    <p className="text-xs sm:text-sm text-muted-foreground mb-1">IC Number</p>
+                    <p className="font-medium text-sm sm:text-base">{profile?.ic_number}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs sm:text-sm text-muted-foreground mb-1">Employee ID</p>
+                    <p className="font-medium text-sm sm:text-base">{employee.empId}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs sm:text-sm text-muted-foreground mb-1">Company</p>
+                    <p className="font-medium text-sm sm:text-base">{employee.companyName}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
 
+            {/* Balance Information */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
               <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <CreditCard className="h-5 w-5" />
-                    Annual Balance
-                  </CardTitle>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-xs sm:text-sm font-medium">Annual Balance</CardTitle>
+                  <CreditCard className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-3xl font-bold text-primary">
+                  <div className="text-xl sm:text-2xl font-bold text-primary">
                     RM {employee.annualBalance.toFixed(2)}
                   </div>
-                  <p className="text-sm text-muted-foreground mt-1">
+                  <p className="text-xs text-muted-foreground mt-1">
                     Total allocated for the year
                   </p>
                 </CardContent>
               </Card>
 
               <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <CreditCard className="h-5 w-5" />
-                    Current Balance
-                  </CardTitle>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-xs sm:text-sm font-medium">Current Balance</CardTitle>
+                  <CreditCard className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-3xl font-bold text-primary">
+                  <div className="text-xl sm:text-2xl font-bold text-primary">
                     RM {employee.currentBalance.toFixed(2)}
                   </div>
-                  <Badge variant={employee.currentBalance > 0 ? "default" : "secondary"} className="mt-2">
-                    {employee.currentBalance > 0 ? "Active" : "Depleted"}
-                  </Badge>
-                  <p className="text-sm text-muted-foreground mt-1">
+                  <div className="flex items-center gap-2 mt-2">
+                    <Badge variant={employee.currentBalance > 0 ? "default" : "secondary"} className="text-xs">
+                      {employee.currentBalance > 0 ? "Active" : "Depleted"}
+                    </Badge>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">
                     Available for medical claims
                   </p>
                 </CardContent>
@@ -205,55 +209,56 @@ export const PatientDashboard = () => {
             {/* Transaction History */}
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <History className="h-5 w-5" />
+                <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+                  <History className="h-4 w-4 sm:h-5 sm:w-5" />
                   Transaction History ({transactions.length})
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 {loadingTransactions ? (
                   <div className="text-center py-8">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-                    <p className="mt-2 text-sm text-muted-foreground">Loading transactions...</p>
+                    <div className="animate-spin rounded-full h-6 w-6 sm:h-8 sm:w-8 border-b-2 border-primary mx-auto"></div>
+                    <p className="mt-2 text-xs sm:text-sm text-muted-foreground">Loading transactions...</p>
                   </div>
                 ) : transactions.length > 0 ? (
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Date</TableHead>
-                        <TableHead>Description</TableHead>
-                        <TableHead>Diagnosis</TableHead>
-                        <TableHead>Amount</TableHead>
-                        <TableHead>MC Status</TableHead>
-                        <TableHead>Balance After</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {transactions.map((transaction) => (
-                        <TableRow key={transaction.id}>
-                          <TableCell>{new Date(transaction.date).toLocaleDateString()}</TableCell>
-                          <TableCell>{transaction.description}</TableCell>
-                          <TableCell>
-                            {transaction.diagnosis ? (
-                              <span className="text-sm">{transaction.diagnosis}</span>
-                            ) : (
-                              <span className="text-sm text-muted-foreground">-</span>
-                            )}
-                          </TableCell>
-                          <TableCell className="font-medium">RM {transaction.amount.toFixed(2)}</TableCell>
-                          <TableCell>
-                            <Badge variant={transaction.medicalLeaveGranted ? "default" : "secondary"}>
-                              {transaction.medicalLeaveGranted ? "Granted" : "Not Granted"}
+                  <div className="space-y-4">
+                    {transactions.map((transaction) => (
+                      <div key={transaction.id} className="border rounded-lg p-4 space-y-3">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <p className="font-medium text-sm sm:text-base">{transaction.description}</p>
+                            <p className="text-xs sm:text-sm text-muted-foreground">
+                              {new Date(transaction.date).toLocaleDateString()}
+                            </p>
+                          </div>
+                          <div className="text-right">
+                            <p className="font-bold text-primary text-sm sm:text-base">
+                              RM {transaction.amount.toFixed(2)}
+                            </p>
+                            <Badge variant={transaction.medicalLeaveGranted ? "default" : "secondary"} className="text-xs mt-1">
+                              {transaction.medicalLeaveGranted ? "MC Granted" : "No MC"}
                             </Badge>
-                          </TableCell>
-                          <TableCell>RM {transaction.balanceAfter.toFixed(2)}</TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
+                          </div>
+                        </div>
+                        
+                        {transaction.diagnosis && (
+                          <div>
+                            <p className="text-xs sm:text-sm text-muted-foreground">Diagnosis:</p>
+                            <p className="text-xs sm:text-sm">{transaction.diagnosis}</p>
+                          </div>
+                        )}
+                        
+                        <div className="flex justify-between items-center pt-2 border-t text-xs sm:text-sm">
+                          <span className="text-muted-foreground">Balance After:</span>
+                          <span className="font-medium">RM {transaction.balanceAfter.toFixed(2)}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 ) : (
                   <div className="text-center py-8">
-                    <p className="text-muted-foreground">No transactions found.</p>
+                    <p className="text-muted-foreground text-sm">No transactions found.</p>
+                    <p className="text-xs text-muted-foreground mt-2">Your transaction history will appear here</p>
                   </div>
                 )}
               </CardContent>
