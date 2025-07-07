@@ -264,7 +264,7 @@ export const Companies = () => {
           <CardTitle>Add New Company</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex gap-4">
+          <div className="flex flex-col sm:flex-row gap-4">
             <div className="flex-1">
               <Label htmlFor="companyName">Company Name</Label>
               <Input
@@ -276,9 +276,15 @@ export const Companies = () => {
                 disabled={submitting}
               />
             </div>
-            <Button onClick={handleAddCompany} className="mt-6" disabled={submitting}>
-              {submitting ? "Adding..." : "Add Company"}
-            </Button>
+            <div className="flex sm:flex-col sm:justify-end">
+              <Button 
+                onClick={handleAddCompany} 
+                className="w-full sm:w-auto sm:mt-6" 
+                disabled={submitting}
+              >
+                {submitting ? "Adding..." : "Add Company"}
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>
