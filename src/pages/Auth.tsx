@@ -28,10 +28,9 @@ export const Auth = () => {
   const { toast } = useToast();
   const location = useLocation();
 
-  // Redirect if already authenticated
+  // Redirect if already authenticated - let App.tsx handle routing
   if (user) {
-    const from = location.state?.from?.pathname || '/';
-    return <Navigate to={from} replace />;
+    return <Navigate to="/" replace />;
   }
 
   const handleAdminLogin = async (e: React.FormEvent) => {
@@ -50,10 +49,8 @@ export const Auth = () => {
           description: "Please check your credentials.",
           variant: "destructive",
         });
-      } else {
-        // Force redirect to admin dashboard
-        window.location.href = '/dashboard';
       }
+      // Let App.tsx handle the redirect based on user role
     } else {
       setError('Invalid admin credentials. Only authorized administrators can access this section.');
       toast({
@@ -79,10 +76,8 @@ export const Auth = () => {
         description: error.message,
         variant: "destructive",
       });
-    } else {
-      // Force redirect to patient dashboard
-      window.location.href = '/patient';
     }
+    // Let App.tsx handle the redirect based on user role
     
     setLoading(false);
   };

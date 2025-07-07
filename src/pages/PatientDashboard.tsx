@@ -18,10 +18,13 @@ export const PatientDashboard = () => {
   const { toast } = useToast();
 
   useEffect(() => {
-    if (user && profile) {
+    if (user && profile && profile.ic_number) {
       loadPatientData();
+    } else if (profile && !profile.ic_number) {
+      // Profile exists but no IC number, set loading to false
+      setLoading(false);
     }
-  }, [user, profile]);
+  }, [user?.id, profile?.id, profile?.ic_number]); // Only re-run when essential IDs change
 
   const loadPatientData = async () => {
     if (!profile?.ic_number) {
