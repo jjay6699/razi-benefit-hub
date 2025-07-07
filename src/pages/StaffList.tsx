@@ -16,6 +16,7 @@ export const StaffList = () => {
   const [loadingTransactions, setLoadingTransactions] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
+  const [selectedEmployees, setSelectedEmployees] = useState<Set<string>>(new Set());
   const { toast } = useToast();
 
   const loadEmployees = async () => {
@@ -102,6 +103,11 @@ export const StaffList = () => {
       const success = await deleteEmployee(employeeId);
       if (success) {
         setEmployees(employees.filter(emp => emp.id !== employeeId));
+        setSelectedEmployees(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(employeeId);
+          return newSet;
+        });
         toast({
           title: "Success",
           description: `${employeeName} has been deleted successfully`,
@@ -115,6 +121,52 @@ export const StaffList = () => {
         description: error instanceof Error ? error.message : 'Failed to delete employee',
         variant: "destructive",
       });
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    const selectedEmployeesList = employees.filter(emp => selectedEmployees.has(emp.id));
+    
+    try {
+      const deletePromises = selectedEmployeesList.map(emp => deleteEmployee(emp.id));
+      const results = await Promise.all(deletePromises);
+      
+      if (results.every(result => result)) {
+        setEmployees(employees.filter(emp => !selectedEmployees.has(emp.id)));
+        setSelectedEmployees(new Set());
+        toast({
+          title: "Success",
+          description: `${selectedEmployeesList.length} employee(s) deleted successfully`,
+        });
+      } else {
+        throw new Error('Some employees could not be deleted');
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : 'Failed to delete selected employees',
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleSelectEmployee = (employeeId: string, checked: boolean) => {
+    setSelectedEmployees(prev => {
+      const newSet = new Set(prev);
+      if (checked) {
+        newSet.add(employeeId);
+      } else {
+        newSet.delete(employeeId);
+      }
+      return newSet;
+    });
+  };
+
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedEmployees(new Set(filteredEmployees.map(emp => emp.id)));
+    } else {
+      setSelectedEmployees(new Set());
     }
   };
 
@@ -137,9 +189,13 @@ export const StaffList = () => {
       loading={loading}
       searchTerm={searchTerm}
       currentPage={currentPage}
+      selectedEmployees={selectedEmployees}
       onSearchChange={setSearchTerm}
       onEmployeeClick={handleEmployeeClick}
       onDeleteEmployee={handleDeleteEmployee}
+      onBulkDelete={handleBulkDelete}
+      onSelectEmployee={handleSelectEmployee}
+      onSelectAll={handleSelectAll}
       onPageChange={handlePageChange}
     />
   );

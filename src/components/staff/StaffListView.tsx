@@ -1,9 +1,12 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Table, TableBody, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Employee } from '@/types';
-import { Search } from 'lucide-react';
+import { Search, Trash2 } from 'lucide-react';
 import { EmployeeRow } from './EmployeeRow';
 
 interface StaffListViewProps {
@@ -12,9 +15,13 @@ interface StaffListViewProps {
   loading: boolean;
   searchTerm: string;
   currentPage: number;
+  selectedEmployees: Set<string>;
   onSearchChange: (value: string) => void;
   onEmployeeClick: (employee: Employee) => void;
   onDeleteEmployee: (employeeId: string, employeeName: string) => void;
+  onBulkDelete: () => void;
+  onSelectEmployee: (employeeId: string, checked: boolean) => void;
+  onSelectAll: (checked: boolean) => void;
   onPageChange: (page: number) => void;
 }
 
@@ -26,15 +33,22 @@ export const StaffListView = ({
   loading,
   searchTerm,
   currentPage,
+  selectedEmployees,
   onSearchChange,
   onEmployeeClick,
   onDeleteEmployee,
+  onBulkDelete,
+  onSelectEmployee,
+  onSelectAll,
   onPageChange,
 }: StaffListViewProps) => {
   const totalPages = Math.ceil(filteredEmployees.length / ITEMS_PER_PAGE);
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
   const endIndex = startIndex + ITEMS_PER_PAGE;
   const currentEmployees = filteredEmployees.slice(startIndex, endIndex);
+  
+  const isAllSelected = currentEmployees.length > 0 && currentEmployees.every(emp => selectedEmployees.has(emp.id));
+  const isIndeterminate = currentEmployees.some(emp => selectedEmployees.has(emp.id)) && !isAllSelected;
 
   const getVisiblePages = () => {
     const pages = [];
@@ -63,7 +77,41 @@ export const StaffListView = ({
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
-            <span>All Staff ({filteredEmployees.length})</span>
+            <div className="flex items-center gap-4">
+              <span>All Staff ({filteredEmployees.length})</span>
+              {selectedEmployees.size > 0 && (
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-muted-foreground">
+                    {selectedEmployees.size} selected
+                  </span>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button variant="destructive" size="sm">
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Delete Selected ({selectedEmployees.size})
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Delete Selected Employees</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Are you sure you want to delete {selectedEmployees.size} employee(s)? This action cannot be undone.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={onBulkDelete}
+                          className="bg-red-600 hover:bg-red-700"
+                        >
+                          Delete All Selected
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </div>
+              )}
+            </div>
             <div className="relative w-80">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
               <Input
@@ -86,6 +134,18 @@ export const StaffListView = ({
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead className="w-12">
+                      <Checkbox 
+                        checked={isAllSelected}
+                        onCheckedChange={(checked) => onSelectAll(!!checked)}
+                        ref={(ref) => {
+                          if (ref) {
+                            const input = ref.querySelector('input');
+                            if (input) input.indeterminate = isIndeterminate;
+                          }
+                        }}
+                      />
+                    </TableHead>
                     <TableHead>Employee ID</TableHead>
                     <TableHead>Name</TableHead>
                     <TableHead>Company</TableHead>
@@ -100,8 +160,10 @@ export const StaffListView = ({
                     <EmployeeRow
                       key={employee.id}
                       employee={employee}
+                      isSelected={selectedEmployees.has(employee.id)}
                       onEmployeeClick={onEmployeeClick}
                       onDeleteEmployee={onDeleteEmployee}
+                      onSelectEmployee={onSelectEmployee}
                     />
                   ))}
                 </TableBody>
