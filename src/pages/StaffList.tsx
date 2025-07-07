@@ -19,17 +19,31 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from '@/components/ui/pagination';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
-import { getEmployees } from '@/utils/storage';
-import { Employee } from '@/types';
-import { Search } from 'lucide-react';
+import { getEmployees, deleteEmployee, getEmployeeTransactions } from '@/utils/storage';
+import { Employee, Transaction } from '@/types';
+import { Search, ArrowLeft, User, Trash2, CreditCard, History } from 'lucide-react';
 
 const ITEMS_PER_PAGE = 50;
 
 export const StaffList = () => {
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [filteredEmployees, setFilteredEmployees] = useState<Employee[]>([]);
+  const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
+  const [employeeTransactions, setEmployeeTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingTransactions, setLoadingTransactions] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const { toast } = useToast();
@@ -84,6 +98,50 @@ export const StaffList = () => {
     setCurrentPage(page);
   };
 
+  const handleEmployeeClick = async (employee: Employee) => {
+    setSelectedEmployee(employee);
+    setLoadingTransactions(true);
+    
+    try {
+      const transactions = await getEmployeeTransactions(employee.id);
+      setEmployeeTransactions(transactions);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to load employee transactions",
+        variant: "destructive",
+      });
+    } finally {
+      setLoadingTransactions(false);
+    }
+  };
+
+  const handleBackToList = () => {
+    setSelectedEmployee(null);
+    setEmployeeTransactions([]);
+  };
+
+  const handleDeleteEmployee = async (employeeId: string, employeeName: string) => {
+    try {
+      const success = await deleteEmployee(employeeId);
+      if (success) {
+        setEmployees(employees.filter(emp => emp.id !== employeeId));
+        toast({
+          title: "Success",
+          description: `${employeeName} has been deleted successfully`,
+        });
+      } else {
+        throw new Error('Failed to delete employee');
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : 'Failed to delete employee',
+        variant: "destructive",
+      });
+    }
+  };
+
   const getVisiblePages = () => {
     const pages = [];
     const maxVisible = 5;
@@ -100,6 +158,147 @@ export const StaffList = () => {
     
     return pages;
   };
+
+  if (selectedEmployee) {
+    return (
+      <div className="space-y-6">
+        <div className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground rounded-lg p-6">
+          <div className="flex items-center gap-4">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={handleBackToList}
+              className="bg-white/10 text-white border-white/20 hover:bg-white/20"
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to Staff List
+            </Button>
+            <div>
+              <h1 className="text-3xl font-bold mb-2">{selectedEmployee.name}</h1>
+              <p className="text-primary-foreground/90">Employee ID: {selectedEmployee.empId}</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid gap-6 md:grid-cols-3">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <User className="h-5 w-5" />
+                Employee Details
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                <div>
+                  <p className="text-sm text-muted-foreground">Company</p>
+                  <p className="font-medium">{selectedEmployee.companyName}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Employee ID</p>
+                  <p className="font-medium">{selectedEmployee.empId}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Joined</p>
+                  <p className="font-medium">{new Date(selectedEmployee.createdAt).toLocaleDateString()}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <CreditCard className="h-5 w-5" />
+                Annual Balance
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-primary">
+                RM {selectedEmployee.annualBalance.toFixed(2)}
+              </div>
+              <p className="text-sm text-muted-foreground mt-1">
+                Total allocated for the year
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <CreditCard className="h-5 w-5" />
+                Current Balance
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-primary">
+                RM {selectedEmployee.currentBalance.toFixed(2)}
+              </div>
+              <Badge variant={selectedEmployee.currentBalance > 0 ? "default" : "secondary"} className="mt-2">
+                {selectedEmployee.currentBalance > 0 ? "Active" : "Depleted"}
+              </Badge>
+            </CardContent>
+          </Card>
+        </div>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <History className="h-5 w-5" />
+              Transaction History ({employeeTransactions.length})
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {loadingTransactions ? (
+              <div className="text-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+                <p className="mt-2 text-sm text-muted-foreground">Loading transactions...</p>
+              </div>
+            ) : employeeTransactions.length > 0 ? (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Date</TableHead>
+                    <TableHead>Description</TableHead>
+                    <TableHead>Diagnosis</TableHead>
+                    <TableHead>Amount</TableHead>
+                    <TableHead>MC Granted</TableHead>
+                    <TableHead>Balance After</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {employeeTransactions.map((transaction) => (
+                    <TableRow key={transaction.id}>
+                      <TableCell>{new Date(transaction.date).toLocaleDateString()}</TableCell>
+                      <TableCell>{transaction.description}</TableCell>
+                      <TableCell>
+                        {transaction.diagnosis ? (
+                          <span className="text-sm">{transaction.diagnosis}</span>
+                        ) : (
+                          <span className="text-sm text-muted-foreground">-</span>
+                        )}
+                      </TableCell>
+                      <TableCell className="font-medium">RM {transaction.amount.toFixed(2)}</TableCell>
+                      <TableCell>
+                        <Badge variant={transaction.medicalLeaveGranted ? "default" : "secondary"}>
+                          {transaction.medicalLeaveGranted ? "Yes" : "No"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>RM {transaction.balanceAfter.toFixed(2)}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            ) : (
+              <div className="text-center py-8">
+                <p className="text-muted-foreground">No transactions found for this employee.</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -140,11 +339,16 @@ export const StaffList = () => {
                     <TableHead>Annual Balance</TableHead>
                     <TableHead>Current Balance</TableHead>
                     <TableHead>Status</TableHead>
+                    <TableHead>Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {currentEmployees.map((employee) => (
-                    <TableRow key={employee.id}>
+                    <TableRow 
+                      key={employee.id} 
+                      className="cursor-pointer hover:bg-muted/50"
+                      onClick={() => handleEmployeeClick(employee)}
+                    >
                       <TableCell className="font-medium">{employee.empId}</TableCell>
                       <TableCell>{employee.name}</TableCell>
                       <TableCell>{employee.companyName}</TableCell>
@@ -154,6 +358,37 @@ export const StaffList = () => {
                         <Badge variant={employee.currentBalance > 0 ? "default" : "secondary"}>
                           {employee.currentBalance > 0 ? "Active" : "Depleted"}
                         </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              className="text-red-600 hover:text-red-700"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Delete Employee</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Are you sure you want to delete {employee.name}? This action cannot be undone.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => handleDeleteEmployee(employee.id, employee.name)}
+                                className="bg-red-600 hover:bg-red-700"
+                              >
+                                Delete
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
                       </TableCell>
                     </TableRow>
                   ))}

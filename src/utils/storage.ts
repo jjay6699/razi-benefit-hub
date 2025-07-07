@@ -39,6 +39,20 @@ export const addCompany = async (company: Omit<Company, 'id' | 'createdAt'>): Pr
   };
 };
 
+export const deleteCompany = async (companyId: string): Promise<boolean> => {
+  const { error } = await supabase
+    .from('companies')
+    .delete()
+    .eq('id', companyId);
+  
+  if (error) {
+    console.error('Error deleting company:', error);
+    return false;
+  }
+  
+  return true;
+};
+
 // Employee Storage
 export const getEmployees = async (): Promise<Employee[]> => {
   const { data, error } = await supabase
@@ -151,6 +165,20 @@ export const searchEmployees = async (query: string): Promise<Employee[]> => {
     currentBalance: Number(employee.current_balance),
     createdAt: employee.created_at,
   })) || [];
+};
+
+export const deleteEmployee = async (employeeId: string): Promise<boolean> => {
+  const { error } = await supabase
+    .from('employees')
+    .delete()
+    .eq('id', employeeId);
+  
+  if (error) {
+    console.error('Error deleting employee:', error);
+    return false;
+  }
+  
+  return true;
 };
 
 // Transaction Storage

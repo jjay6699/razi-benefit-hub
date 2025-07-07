@@ -12,10 +12,21 @@ import {
   TableHeader, 
   TableRow 
 } from '@/components/ui/table';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
-import { getCompanies, addCompany, getEmployees } from '@/utils/storage';
+import { getCompanies, addCompany, getEmployees, deleteCompany } from '@/utils/storage';
 import { Company, Employee } from '@/types';
-import { ArrowLeft, Building2, Users } from 'lucide-react';
+import { ArrowLeft, Building2, Users, Trash2 } from 'lucide-react';
 
 export const Companies = () => {
   const [companies, setCompanies] = useState<Company[]>([]);
@@ -95,6 +106,27 @@ export const Companies = () => {
   const handleBackToCompanies = () => {
     setSelectedCompany(null);
     setCompanyEmployees([]);
+  };
+
+  const handleDeleteCompany = async (companyId: string, companyName: string) => {
+    try {
+      const success = await deleteCompany(companyId);
+      if (success) {
+        setCompanies(companies.filter(comp => comp.id !== companyId));
+        toast({
+          title: "Success",
+          description: `${companyName} has been deleted successfully`,
+        });
+      } else {
+        throw new Error('Failed to delete company');
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : 'Failed to delete company',
+        variant: "destructive",
+      });
+    }
   };
 
   if (selectedCompany) {
@@ -215,11 +247,13 @@ export const Companies = () => {
               {companies.map((company) => (
                 <div 
                   key={company.id} 
-                  className="border border-border rounded-lg p-4 cursor-pointer hover:bg-muted/50 transition-colors"
-                  onClick={() => handleCompanyClick(company)}
+                  className="border border-border rounded-lg p-4 hover:bg-muted/50 transition-colors"
                 >
                   <div className="flex items-center justify-between">
-                    <div>
+                    <div 
+                      className="flex-1 cursor-pointer"
+                      onClick={() => handleCompanyClick(company)}
+                    >
                       <h3 className="font-medium flex items-center gap-2">
                         <Building2 className="h-4 w-4" />
                         {company.name}
@@ -227,10 +261,38 @@ export const Companies = () => {
                       <p className="text-sm text-muted-foreground">
                         Created: {new Date(company.createdAt).toLocaleDateString()}
                       </p>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        Click to view staff →
+                      </p>
                     </div>
-                    <div className="text-sm text-muted-foreground">
-                      Click to view staff →
-                    </div>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="text-red-600 hover:text-red-700"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Delete Company</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Are you sure you want to delete {company.name}? This action cannot be undone and will affect all associated employees.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={() => handleDeleteCompany(company.id, company.name)}
+                            className="bg-red-600 hover:bg-red-700"
+                          >
+                            Delete
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
                   </div>
                 </div>
               ))}
