@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -29,6 +30,7 @@ import { Company, Employee } from '@/types';
 import { ArrowLeft, Building2, Users, Trash2 } from 'lucide-react';
 
 export const Companies = () => {
+  const navigate = useNavigate();
   const [companies, setCompanies] = useState<Company[]>([]);
   const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
   const [companyEmployees, setCompanyEmployees] = useState<Employee[]>([]);
@@ -108,6 +110,10 @@ export const Companies = () => {
     setCompanyEmployees([]);
   };
 
+  const handleEmployeeClick = (employee: Employee) => {
+    navigate('/staff-list', { state: { selectedEmployeeId: employee.id } });
+  };
+
   const handleDeleteCompany = async (companyId: string, companyName: string) => {
     try {
       const success = await deleteCompany(companyId);
@@ -135,10 +141,9 @@ export const Companies = () => {
         <div className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground rounded-lg p-6">
           <div className="flex items-center gap-4">
             <Button 
-              variant="outline" 
+              variant="secondary" 
               size="sm" 
               onClick={handleBackToCompanies}
-              className="bg-white/10 text-white border-white/20 hover:bg-white/20"
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back to Companies
@@ -176,7 +181,11 @@ export const Companies = () => {
                 </TableHeader>
                 <TableBody>
                   {companyEmployees.map((employee) => (
-                    <TableRow key={employee.id}>
+                    <TableRow 
+                      key={employee.id}
+                      className="cursor-pointer hover:bg-muted/50"
+                      onClick={() => handleEmployeeClick(employee)}
+                    >
                       <TableCell className="font-medium">{employee.empId}</TableCell>
                       <TableCell>{employee.name}</TableCell>
                       <TableCell>RM {employee.annualBalance.toFixed(2)}</TableCell>
