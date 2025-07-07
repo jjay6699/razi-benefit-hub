@@ -9,8 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { useToast } from '@/hooks/use-toast';
 import { getEmployees, getCompanies, getTransactions } from '@/utils/storage';
 import { Employee, Company, Transaction } from '@/types';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import { TrendingUp, Users, Building, CreditCard, Download, Calendar, Filter } from 'lucide-react';
+import { TrendingUp, Users, Building, CreditCard, Filter } from 'lucide-react';
 
 export const Reports = () => {
   const [employees, setEmployees] = useState<Employee[]>([]);
@@ -95,7 +94,7 @@ export const Reports = () => {
     };
   }).sort((a, b) => b.amount - a.amount);
 
-  // Monthly transaction data
+  // Monthly transaction data (simplified)
   const monthlyData = filteredTransactions.reduce((acc, transaction) => {
     const month = new Date(transaction.date).toLocaleDateString('en-US', { year: 'numeric', month: 'short' });
     if (!acc[month]) {
@@ -105,14 +104,6 @@ export const Reports = () => {
     acc[month].count += 1;
     return acc;
   }, {} as Record<string, { month: string; amount: number; count: number }>);
-
-  const chartData = Object.values(monthlyData).sort((a, b) => new Date(a.month).getTime() - new Date(b.month).getTime());
-
-  // Status distribution for pie chart
-  const statusData = [
-    { name: 'Active', value: activeEmployees, color: '#8884d8' },
-    { name: 'Depleted', value: totalEmployees - activeEmployees, color: '#82ca9d' }
-  ];
 
   if (loading) {
     return (
@@ -244,54 +235,57 @@ export const Reports = () => {
         </Card>
       </div>
 
-      {/* Charts */}
+      {/* Summary Cards */}
       <div className="grid gap-6 md:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle>Monthly Transaction Trends</CardTitle>
+            <CardTitle>Company Spending Summary</CardTitle>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="month" />
-                <YAxis />
-                <Tooltip 
-                  formatter={(value: any, name: string) => [
-                    name === 'amount' ? `RM ${value.toFixed(2)}` : value,
-                    name === 'amount' ? 'Amount' : 'Transactions'
-                  ]}
-                />
-                <Bar dataKey="amount" fill="#8884d8" name="amount" />
-              </BarChart>
-            </ResponsiveContainer>
+            <div className="space-y-4">
+              {companySpending.slice(0, 5).map((company, index) => (
+                <div key={company.name} className="flex items-center justify-between">
+                  <div>
+                    <p className="font-medium">{company.name}</p>
+                    <p className="text-sm text-muted-foreground">{company.transactions} transactions</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-medium">RM {company.amount.toFixed(2)}</p>
+                    <p className="text-sm text-muted-foreground">
+                      Avg: RM {company.transactions > 0 ? (company.amount / company.transactions).toFixed(2) : '0.00'}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
-            <CardTitle>Employee Status Distribution</CardTitle>
+            <CardTitle>System Statistics</CardTitle>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie
-                  data={statusData}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  label={({ name, value }) => `${name}: ${value}`}
-                  outerRadius={80}
-                  fill="#8884d8"
-                  dataKey="value"
-                >
-                  {statusData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
-                <Tooltip />
-              </PieChart>
-            </ResponsiveContainer>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-muted-foreground">Active Employees</span>
+                <span className="font-medium">{activeEmployees} / {totalEmployees}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-muted-foreground">Average Balance</span>
+                <span className="font-medium">RM {averageBalance.toFixed(2)}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-muted-foreground">Total Processed</span>
+                <span className="font-medium">RM {totalAmount.toFixed(2)}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-muted-foreground">Avg per Transaction</span>
+                <span className="font-medium">
+                  RM {totalTransactions > 0 ? (totalAmount / totalTransactions).toFixed(2) : '0.00'}
+                </span>
+              </div>
+            </div>
           </CardContent>
         </Card>
       </div>
