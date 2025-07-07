@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { Layout } from "./components/layout/Layout";
 import { ProtectedRoute } from "./components/ProtectedRoute";
+import { ScrollToTop } from "./components/ScrollToTop";
 import { Dashboard } from "./pages/Dashboard";
 import { AdminPanel } from "./pages/AdminPanel";
 import { StaffSearch } from "./pages/StaffSearch";
@@ -84,6 +85,7 @@ const App = () => (
       <Sonner />
       <AuthProvider>
         <BrowserRouter>
+          <ScrollToTop />
           <AppRoutes />
         </BrowserRouter>
       </AuthProvider>
