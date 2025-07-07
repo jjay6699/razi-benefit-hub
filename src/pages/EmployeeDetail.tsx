@@ -83,7 +83,7 @@ export const EmployeeDetail = () => {
 
   const handleBack = () => {
     if (source === 'staff-search') {
-      navigate('/dashboard/staff-search');
+      navigate('/dashboard/staff');
     } else if (source === 'companies') {
       navigate('/dashboard/companies');
     } else {
