@@ -15,9 +15,10 @@ export const StaffSearch = () => {
   const [description, setDescription] = useState('');
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [processing, setProcessing] = useState(false);
+  const [searching, setSearching] = useState(false);
   const { toast } = useToast();
 
-  const handleSearch = () => {
+  const handleSearch = async () => {
     if (!searchQuery.trim()) {
       toast({
         title: "Error",
@@ -27,36 +28,49 @@ export const StaffSearch = () => {
       return;
     }
 
-    const results = searchEmployees(searchQuery);
-    
-    if (results.length === 0) {
+    setSearching(true);
+    try {
+      const results = await searchEmployees(searchQuery);
+      
+      if (results.length === 0) {
+        toast({
+          title: "No Results",
+          description: "No employee found with the given search criteria",
+          variant: "destructive",
+        });
+        setSelectedEmployee(null);
+        setTransactions([]);
+        return;
+      }
+
+      if (results.length === 1) {
+        const employee = results[0];
+        setSelectedEmployee(employee);
+        const empTransactions = await getEmployeeTransactions(employee.id);
+        setTransactions(empTransactions);
+        toast({
+          title: "Employee Found",
+          description: `Found: ${employee.name} (${employee.empId})`,
+        });
+      } else {
+        // Multiple results - show first one for now
+        const employee = results[0];
+        setSelectedEmployee(employee);
+        const empTransactions = await getEmployeeTransactions(employee.id);
+        setTransactions(empTransactions);
+        toast({
+          title: "Multiple Results",
+          description: `Found ${results.length} employees. Showing: ${employee.name}`,
+        });
+      }
+    } catch (error) {
       toast({
-        title: "No Results",
-        description: "No employee found with the given search criteria",
+        title: "Error",
+        description: "Failed to search employees",
         variant: "destructive",
       });
-      setSelectedEmployee(null);
-      setTransactions([]);
-      return;
-    }
-
-    if (results.length === 1) {
-      const employee = results[0];
-      setSelectedEmployee(employee);
-      setTransactions(getEmployeeTransactions(employee.id));
-      toast({
-        title: "Employee Found",
-        description: `Found: ${employee.name} (${employee.empId})`,
-      });
-    } else {
-      // Multiple results - show first one for now
-      const employee = results[0];
-      setSelectedEmployee(employee);
-      setTransactions(getEmployeeTransactions(employee.id));
-      toast({
-        title: "Multiple Results",
-        description: `Found ${results.length} employees. Showing: ${employee.name}`,
-      });
+    } finally {
+      setSearching(false);
     }
   };
 
@@ -95,7 +109,7 @@ export const StaffSearch = () => {
       const newBalance = selectedEmployee.currentBalance - amount;
       
       // Update employee balance
-      const updatedEmployee = updateEmployee(selectedEmployee.id, {
+      const updatedEmployee = await updateEmployee(selectedEmployee.id, {
         currentBalance: newBalance
       });
 
@@ -104,7 +118,7 @@ export const StaffSearch = () => {
       }
 
       // Add transaction
-      const transaction = addTransaction({
+      const transaction = await addTransaction({
         employeeId: selectedEmployee.id,
         employeeName: selectedEmployee.name,
         employeeEmpId: selectedEmployee.empId,
@@ -113,6 +127,10 @@ export const StaffSearch = () => {
         description: description.trim(),
         balanceAfter: newBalance,
       });
+
+      if (!transaction) {
+        throw new Error('Failed to add transaction');
+      }
 
       // Update local state
       setSelectedEmployee(updatedEmployee);
@@ -128,7 +146,7 @@ export const StaffSearch = () => {
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to process deduction. Please try again.",
+        description: error instanceof Error ? error.message : "Failed to process deduction. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -170,11 +188,12 @@ export const StaffSearch = () => {
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
                 className="mt-1"
+                disabled={searching}
               />
             </div>
             <div className="flex gap-2 items-end">
-              <Button onClick={handleSearch} size="lg">
-                🔍 Search
+              <Button onClick={handleSearch} size="lg" disabled={searching}>
+                {searching ? "Searching..." : "🔍 Search"}
               </Button>
               <Button onClick={clearSearch} variant="outline" size="lg">
                 Clear
@@ -244,6 +263,7 @@ export const StaffSearch = () => {
                     value={deductionAmount}
                     onChange={(e) => setDeductionAmount(e.target.value)}
                     className="mt-1"
+                    disabled={processing}
                   />
                 </div>
 
@@ -256,6 +276,7 @@ export const StaffSearch = () => {
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     className="mt-1"
+                    disabled={processing}
                   />
                 </div>
 

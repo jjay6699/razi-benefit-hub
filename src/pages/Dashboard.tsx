@@ -20,23 +20,61 @@ export const Dashboard = () => {
     totalAmountUsed: 0,
     totalBalance: 0,
   });
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const employees = getEmployees();
-    const transactions = getTransactions();
-    const companies = getCompanies();
-
-    const totalAmountUsed = transactions.reduce((sum, transaction) => sum + transaction.amount, 0);
-    const totalBalance = employees.reduce((sum, employee) => sum + employee.currentBalance, 0);
-
-    setStats({
-      totalEmployees: employees.length,
-      totalCompanies: companies.length,
-      totalTransactions: transactions.length,
-      totalAmountUsed,
-      totalBalance,
-    });
+    loadDashboardData();
   }, []);
+
+  const loadDashboardData = async () => {
+    setLoading(true);
+    try {
+      const [employees, transactions, companies] = await Promise.all([
+        getEmployees(),
+        getTransactions(),
+        getCompanies()
+      ]);
+
+      const totalAmountUsed = transactions.reduce((sum, transaction) => sum + transaction.amount, 0);
+      const totalBalance = employees.reduce((sum, employee) => sum + employee.currentBalance, 0);
+
+      setStats({
+        totalEmployees: employees.length,
+        totalCompanies: companies.length,
+        totalTransactions: transactions.length,
+        totalAmountUsed,
+        totalBalance,
+      });
+    } catch (error) {
+      console.error('Error loading dashboard data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground rounded-lg p-6">
+          <h1 className="text-3xl font-bold mb-2">Medical Benefit Dashboard</h1>
+          <p className="text-primary-foreground/90">Loading system data...</p>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {Array.from({ length: 4 }).map((_, index) => (
+            <Card key={index}>
+              <CardHeader>
+                <div className="h-4 bg-muted rounded animate-pulse"></div>
+              </CardHeader>
+              <CardContent>
+                <div className="h-8 bg-muted rounded animate-pulse"></div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

@@ -1,20 +1,41 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { getCompanies, addEmployee, getEmployees } from '@/utils/storage';
-import { Employee, UploadResult } from '@/types';
+import { Employee, UploadResult, Company } from '@/types';
 
 export const AdminPanel = () => {
   const [selectedCompany, setSelectedCompany] = useState('');
   const [uploading, setUploading] = useState(false);
   const [uploadResult, setUploadResult] = useState<UploadResult | null>(null);
+  const [companies, setCompanies] = useState<Company[]>([]);
+  const [loading, setLoading] = useState(true);
+  
+  // Manual employee form state
+  const [manualEmployee, setManualEmployee] = useState({
+    empId: '',
+    name: '',
+    companyId: '',
+    balance: '',
+  });
+  const [submittingManual, setSubmittingManual] = useState(false);
+  
   const { toast } = useToast();
 
-  const companies = getCompanies();
+  useEffect(() => {
+    loadCompanies();
+  }, []);
+
+  const loadCompanies = async () => {
+    setLoading(true);
+    const companiesData = await getCompanies();
+    setCompanies(companiesData);
+    setLoading(false);
+  };
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -43,7 +64,7 @@ export const AdminPanel = () => {
         throw new Error('CSV must contain EMP, Name, and Balance columns');
       }
 
-      const existingEmployees = getEmployees();
+      const existingEmployees = await getEmployees();
       const company = companies.find(c => c.id === selectedCompany);
       
       for (let i = 1; i < lines.length; i++) {
@@ -68,7 +89,7 @@ export const AdminPanel = () => {
         }
 
         // Add employee
-        addEmployee({
+        await addEmployee({
           empId,
           name,
           companyId: selectedCompany,
@@ -98,6 +119,83 @@ export const AdminPanel = () => {
     }
   };
 
+  const handleManualSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!manualEmployee.empId || !manualEmployee.name || !manualEmployee.companyId || !manualEmployee.balance) {
+      toast({
+        title: "Error",
+        description: "Please fill in all fields",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const balance = parseFloat(manualEmployee.balance);
+    if (isNaN(balance) || balance < 0) {
+      toast({
+        title: "Error",
+        description: "Please enter a valid balance amount",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setSubmittingManual(true);
+    
+    try {
+      // Check for duplicates
+      const existingEmployees = await getEmployees();
+      const existingEmp = existingEmployees.find(e => e.empId === manualEmployee.empId);
+      
+      if (existingEmp) {
+        toast({
+          title: "Error",
+          description: `Employee ID ${manualEmployee.empId} already exists`,
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const company = companies.find(c => c.id === manualEmployee.companyId);
+      
+      const result = await addEmployee({
+        empId: manualEmployee.empId,
+        name: manualEmployee.name,
+        companyId: manualEmployee.companyId,
+        companyName: company?.name || 'Unknown',
+        annualBalance: balance,
+        currentBalance: balance,
+      });
+
+      if (result) {
+        toast({
+          title: "Success",
+          description: "Employee added successfully",
+        });
+        
+        // Reset form
+        setManualEmployee({
+          empId: '',
+          name: '',
+          companyId: '',
+          balance: '',
+        });
+      } else {
+        throw new Error('Failed to add employee');
+      }
+      
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : 'Failed to add employee',
+        variant: "destructive",
+      });
+    } finally {
+      setSubmittingManual(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground rounded-lg p-6">
@@ -107,12 +205,19 @@ export const AdminPanel = () => {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Upload Employee Data</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
+      <Tabs defaultValue="csv" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="csv">CSV Upload</TabsTrigger>
+          <TabsTrigger value="manual">Manual Entry</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="csv" className="space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Upload Employee Data</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
             <div>
               <Label htmlFor="company">Select Company</Label>
               <select
@@ -121,12 +226,16 @@ export const AdminPanel = () => {
                 value={selectedCompany}
                 onChange={(e) => setSelectedCompany(e.target.value)}
               >
-                <option value="">Choose a company...</option>
-                {companies.map((company) => (
-                  <option key={company.id} value={company.id}>
-                    {company.name}
-                  </option>
-                ))}
+                  <option value="">Choose a company...</option>
+                  {loading ? (
+                    <option disabled>Loading companies...</option>
+                  ) : (
+                    companies.map((company) => (
+                      <option key={company.id} value={company.id}>
+                        {company.name}
+                      </option>
+                    ))
+                  )}
               </select>
             </div>
 
@@ -179,9 +288,92 @@ EMP,Name,Balance{'\n'}
                 </pre>
               </div>
             </div>
-          </CardContent>
-        </Card>
-      </div>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="manual" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Add Employee Manually</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleManualSubmit} className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="empId">Employee ID</Label>
+                    <Input
+                      id="empId"
+                      value={manualEmployee.empId}
+                      onChange={(e) => setManualEmployee(prev => ({ ...prev, empId: e.target.value }))}
+                      placeholder="e.g., 001"
+                      disabled={submittingManual}
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="employeeName">Full Name</Label>
+                    <Input
+                      id="employeeName"
+                      value={manualEmployee.name}
+                      onChange={(e) => setManualEmployee(prev => ({ ...prev, name: e.target.value }))}
+                      placeholder="e.g., John Doe"
+                      disabled={submittingManual}
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="manualCompany">Company</Label>
+                    <select
+                      id="manualCompany"
+                      className="w-full mt-1 p-2 border border-border rounded-md bg-background"
+                      value={manualEmployee.companyId}
+                      onChange={(e) => setManualEmployee(prev => ({ ...prev, companyId: e.target.value }))}
+                      disabled={submittingManual || loading}
+                    >
+                      <option value="">Choose a company...</option>
+                      {loading ? (
+                        <option disabled>Loading companies...</option>
+                      ) : (
+                        companies.map((company) => (
+                          <option key={company.id} value={company.id}>
+                            {company.name}
+                          </option>
+                        ))
+                      )}
+                    </select>
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="balance">Annual Balance (RM)</Label>
+                    <Input
+                      id="balance"
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      value={manualEmployee.balance}
+                      onChange={(e) => setManualEmployee(prev => ({ ...prev, balance: e.target.value }))}
+                      placeholder="e.g., 1000.00"
+                      disabled={submittingManual}
+                    />
+                  </div>
+                </div>
+
+                <Button 
+                  type="submit" 
+                  disabled={submittingManual || loading}
+                  className="w-full"
+                >
+                  {submittingManual ? "Adding Employee..." : "Add Employee"}
+                </Button>
+              </form>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
 
       {uploadResult && (
         <Card>

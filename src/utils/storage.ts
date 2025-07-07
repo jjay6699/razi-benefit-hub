@@ -1,100 +1,237 @@
 import { Company, Employee, Transaction } from '@/types';
-
-const STORAGE_KEYS = {
-  COMPANIES: 'razi_companies',
-  EMPLOYEES: 'razi_employees',
-  TRANSACTIONS: 'razi_transactions',
-};
+import { supabase } from '@/integrations/supabase/client';
 
 // Company Storage
-export const getCompanies = (): Company[] => {
-  const stored = localStorage.getItem(STORAGE_KEYS.COMPANIES);
-  return stored ? JSON.parse(stored) : [];
+export const getCompanies = async (): Promise<Company[]> => {
+  const { data, error } = await supabase
+    .from('companies')
+    .select('*')
+    .order('created_at', { ascending: true });
+  
+  if (error) {
+    console.error('Error fetching companies:', error);
+    return [];
+  }
+  
+  return data?.map(company => ({
+    id: company.id,
+    name: company.name,
+    createdAt: company.created_at,
+  })) || [];
 };
 
-export const saveCompanies = (companies: Company[]): void => {
-  localStorage.setItem(STORAGE_KEYS.COMPANIES, JSON.stringify(companies));
-};
-
-export const addCompany = (company: Omit<Company, 'id' | 'createdAt'>): Company => {
-  const companies = getCompanies();
-  const newCompany: Company = {
-    ...company,
-    id: Date.now().toString(),
-    createdAt: new Date().toISOString(),
+export const addCompany = async (company: Omit<Company, 'id' | 'createdAt'>): Promise<Company | null> => {
+  const { data, error } = await supabase
+    .from('companies')
+    .insert([{ name: company.name }])
+    .select()
+    .single();
+  
+  if (error) {
+    console.error('Error adding company:', error);
+    return null;
+  }
+  
+  return {
+    id: data.id,
+    name: data.name,
+    createdAt: data.created_at,
   };
-  companies.push(newCompany);
-  saveCompanies(companies);
-  return newCompany;
 };
 
 // Employee Storage
-export const getEmployees = (): Employee[] => {
-  const stored = localStorage.getItem(STORAGE_KEYS.EMPLOYEES);
-  return stored ? JSON.parse(stored) : [];
-};
-
-export const saveEmployees = (employees: Employee[]): void => {
-  localStorage.setItem(STORAGE_KEYS.EMPLOYEES, JSON.stringify(employees));
-};
-
-export const addEmployee = (employee: Omit<Employee, 'id' | 'createdAt'>): Employee => {
-  const employees = getEmployees();
-  const newEmployee: Employee = {
-    ...employee,
-    id: Date.now().toString(),
-    createdAt: new Date().toISOString(),
-  };
-  employees.push(newEmployee);
-  saveEmployees(employees);
-  return newEmployee;
-};
-
-export const updateEmployee = (employeeId: string, updates: Partial<Employee>): Employee | null => {
-  const employees = getEmployees();
-  const index = employees.findIndex(emp => emp.id === employeeId);
-  if (index === -1) return null;
+export const getEmployees = async (): Promise<Employee[]> => {
+  const { data, error } = await supabase
+    .from('employees')
+    .select('*')
+    .order('created_at', { ascending: true });
   
-  employees[index] = { ...employees[index], ...updates };
-  saveEmployees(employees);
-  return employees[index];
+  if (error) {
+    console.error('Error fetching employees:', error);
+    return [];
+  }
+  
+  return data?.map(employee => ({
+    id: employee.id,
+    empId: employee.emp_id,
+    name: employee.name,
+    companyId: employee.company_id,
+    companyName: employee.company_name,
+    annualBalance: Number(employee.annual_balance),
+    currentBalance: Number(employee.current_balance),
+    createdAt: employee.created_at,
+  })) || [];
 };
 
-export const searchEmployees = (query: string): Employee[] => {
-  const employees = getEmployees();
+export const addEmployee = async (employee: Omit<Employee, 'id' | 'createdAt'>): Promise<Employee | null> => {
+  const { data, error } = await supabase
+    .from('employees')
+    .insert([{
+      emp_id: employee.empId,
+      name: employee.name,
+      company_id: employee.companyId,
+      company_name: employee.companyName,
+      annual_balance: employee.annualBalance,
+      current_balance: employee.currentBalance,
+    }])
+    .select()
+    .single();
+  
+  if (error) {
+    console.error('Error adding employee:', error);
+    return null;
+  }
+  
+  return {
+    id: data.id,
+    empId: data.emp_id,
+    name: data.name,
+    companyId: data.company_id,
+    companyName: data.company_name,
+    annualBalance: Number(data.annual_balance),
+    currentBalance: Number(data.current_balance),
+    createdAt: data.created_at,
+  };
+};
+
+export const updateEmployee = async (employeeId: string, updates: Partial<Employee>): Promise<Employee | null> => {
+  const updateData: any = {};
+  if (updates.empId) updateData.emp_id = updates.empId;
+  if (updates.name) updateData.name = updates.name;
+  if (updates.companyId) updateData.company_id = updates.companyId;
+  if (updates.companyName) updateData.company_name = updates.companyName;
+  if (updates.annualBalance !== undefined) updateData.annual_balance = updates.annualBalance;
+  if (updates.currentBalance !== undefined) updateData.current_balance = updates.currentBalance;
+  
+  const { data, error } = await supabase
+    .from('employees')
+    .update(updateData)
+    .eq('id', employeeId)
+    .select()
+    .single();
+  
+  if (error) {
+    console.error('Error updating employee:', error);
+    return null;
+  }
+  
+  return {
+    id: data.id,
+    empId: data.emp_id,
+    name: data.name,
+    companyId: data.company_id,
+    companyName: data.company_name,
+    annualBalance: Number(data.annual_balance),
+    currentBalance: Number(data.current_balance),
+    createdAt: data.created_at,
+  };
+};
+
+export const searchEmployees = async (query: string): Promise<Employee[]> => {
   const searchTerm = query.toLowerCase().trim();
   
-  return employees.filter(employee => 
-    employee.name.toLowerCase().includes(searchTerm) ||
-    employee.empId.toLowerCase().includes(searchTerm)
-  );
+  const { data, error } = await supabase
+    .from('employees')
+    .select('*')
+    .or(`name.ilike.%${searchTerm}%,emp_id.ilike.%${searchTerm}%`)
+    .order('created_at', { ascending: true });
+  
+  if (error) {
+    console.error('Error searching employees:', error);
+    return [];
+  }
+  
+  return data?.map(employee => ({
+    id: employee.id,
+    empId: employee.emp_id,
+    name: employee.name,
+    companyId: employee.company_id,
+    companyName: employee.company_name,
+    annualBalance: Number(employee.annual_balance),
+    currentBalance: Number(employee.current_balance),
+    createdAt: employee.created_at,
+  })) || [];
 };
 
 // Transaction Storage
-export const getTransactions = (): Transaction[] => {
-  const stored = localStorage.getItem(STORAGE_KEYS.TRANSACTIONS);
-  return stored ? JSON.parse(stored) : [];
+export const getTransactions = async (): Promise<Transaction[]> => {
+  const { data, error } = await supabase
+    .from('transactions')
+    .select('*')
+    .order('date', { ascending: false });
+  
+  if (error) {
+    console.error('Error fetching transactions:', error);
+    return [];
+  }
+  
+  return data?.map(transaction => ({
+    id: transaction.id,
+    employeeId: transaction.employee_id,
+    employeeName: transaction.employee_name,
+    employeeEmpId: transaction.employee_emp_id,
+    companyName: transaction.company_name,
+    amount: Number(transaction.amount),
+    description: transaction.description,
+    date: transaction.date,
+    balanceAfter: Number(transaction.balance_after),
+  })) || [];
 };
 
-export const saveTransactions = (transactions: Transaction[]): void => {
-  localStorage.setItem(STORAGE_KEYS.TRANSACTIONS, JSON.stringify(transactions));
-};
-
-export const addTransaction = (transaction: Omit<Transaction, 'id' | 'date'>): Transaction => {
-  const transactions = getTransactions();
-  const newTransaction: Transaction = {
-    ...transaction,
-    id: Date.now().toString(),
-    date: new Date().toISOString(),
+export const addTransaction = async (transaction: Omit<Transaction, 'id' | 'date'>): Promise<Transaction | null> => {
+  const { data, error } = await supabase
+    .from('transactions')
+    .insert([{
+      employee_id: transaction.employeeId,
+      employee_name: transaction.employeeName,
+      employee_emp_id: transaction.employeeEmpId,
+      company_name: transaction.companyName,
+      amount: transaction.amount,
+      description: transaction.description,
+      balance_after: transaction.balanceAfter,
+    }])
+    .select()
+    .single();
+  
+  if (error) {
+    console.error('Error adding transaction:', error);
+    return null;
+  }
+  
+  return {
+    id: data.id,
+    employeeId: data.employee_id,
+    employeeName: data.employee_name,
+    employeeEmpId: data.employee_emp_id,
+    companyName: data.company_name,
+    amount: Number(data.amount),
+    description: data.description,
+    date: data.date,
+    balanceAfter: Number(data.balance_after),
   };
-  transactions.push(newTransaction);
-  saveTransactions(transactions);
-  return newTransaction;
 };
 
-export const getEmployeeTransactions = (employeeId: string): Transaction[] => {
-  const transactions = getTransactions();
-  return transactions
-    .filter(transaction => transaction.employeeId === employeeId)
-    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+export const getEmployeeTransactions = async (employeeId: string): Promise<Transaction[]> => {
+  const { data, error } = await supabase
+    .from('transactions')
+    .select('*')
+    .eq('employee_id', employeeId)
+    .order('date', { ascending: false });
+  
+  if (error) {
+    console.error('Error fetching employee transactions:', error);
+    return [];
+  }
+  
+  return data?.map(transaction => ({
+    id: transaction.id,
+    employeeId: transaction.employee_id,
+    employeeName: transaction.employee_name,
+    employeeEmpId: transaction.employee_emp_id,
+    companyName: transaction.company_name,
+    amount: Number(transaction.amount),
+    description: transaction.description,
+    date: transaction.date,
+    balanceAfter: Number(transaction.balance_after),
+  })) || [];
 };
