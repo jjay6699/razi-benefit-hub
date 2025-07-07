@@ -101,9 +101,10 @@ export const PatientDashboard = () => {
     <div className="min-h-screen flex flex-col bg-gray-50">
       <PatientHeader />
       
-      <main className="flex-1 p-4">
-        {/* Welcome Banner */}
-        <div className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground rounded-lg p-4 sm:p-6 mb-4">
+      <main className="flex-1">
+        <div className="container mx-auto max-w-[1300px] px-3 sm:px-4 py-4 sm:py-8">
+          {/* Welcome Banner */}
+          <div className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground rounded-lg p-4 sm:p-6 mb-4">
           <h1 className="text-2xl sm:text-3xl font-bold mb-1">
             Welcome, {profile?.full_name?.split(' ')[0] || 'User'}
           </h1>
@@ -259,6 +260,7 @@ export const PatientDashboard = () => {
               </Card>
             </>
           )}
+        </div>
         </div>
       </main>
       

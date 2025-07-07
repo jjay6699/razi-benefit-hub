@@ -16,8 +16,9 @@ export const PatientHeader = () => {
   };
 
   return (
-    <header className="bg-white border-b border-gray-200 px-4 py-3">
-      <div className="flex items-center justify-between">
+    <header className="bg-white border-b border-gray-200">
+      <div className="container mx-auto max-w-[1300px] px-3 sm:px-4 py-3">
+        <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <h1 className="text-xl font-bold text-primary">AR RAZI</h1>
         </div>
@@ -40,6 +41,7 @@ export const PatientHeader = () => {
             <span className="hidden sm:inline">Sign Out</span>
           </Button>
         </div>
+      </div>
       </div>
     </header>
   );
