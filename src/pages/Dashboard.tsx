@@ -238,6 +238,83 @@ export const Dashboard = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Additional sections to fill empty space */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base sm:text-lg">Recent Employees</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {stats.recentTransactions.length > 0 ? (
+              <div className="space-y-3">
+                {/* Show unique employees from recent transactions */}
+                {Array.from(new Set(stats.recentTransactions.map(t => t.employeeName)))
+                  .slice(0, 4)
+                  .map((employeeName, index) => {
+                    const employee = stats.recentTransactions.find(t => t.employeeName === employeeName);
+                    return (
+                      <div key={index} className="flex justify-between items-center text-sm">
+                        <div>
+                          <p className="font-medium">{employeeName}</p>
+                          <p className="text-xs text-muted-foreground">{employee?.companyName}</p>
+                        </div>
+                        <div className="text-right">
+                          <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
+                            Active
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
+              </div>
+            ) : (
+              <div className="text-center text-muted-foreground py-4">
+                <p className="text-sm">No employee activity yet</p>
+                <p className="text-xs mt-2">Add employees to get started</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base sm:text-lg">System Status</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-muted-foreground">System Health</span>
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                  <span className="text-sm font-medium text-green-600">Operational</span>
+                </div>
+              </div>
+              
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-muted-foreground">Average Balance per Employee</span>
+                <span className="text-sm font-medium">
+                  RM {stats.totalEmployees > 0 ? (stats.totalBalance / stats.totalEmployees).toFixed(2) : '0.00'}
+                </span>
+              </div>
+              
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-muted-foreground">Average Transaction Amount</span>
+                <span className="text-sm font-medium">
+                  RM {stats.totalTransactions > 0 ? (stats.totalAmountUsed / stats.totalTransactions).toFixed(2) : '0.00'}
+                </span>
+              </div>
+              
+              <div className="pt-2 border-t">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground">Last Updated</span>
+                  <span className="text-xs text-muted-foreground">{new Date().toLocaleString()}</span>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 };
