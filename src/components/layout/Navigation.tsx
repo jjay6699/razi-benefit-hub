@@ -1,4 +1,4 @@
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
@@ -15,6 +15,7 @@ const navItems = [
 
 export const Navigation = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const { signOut } = useAuth();
   const { toast } = useToast();
 
@@ -70,7 +71,7 @@ export const Navigation = () => {
             <select 
               className="bg-background border border-border rounded-md px-3 py-2"
               value={location.pathname}
-              onChange={(e) => window.location.href = e.target.value}
+              onChange={(e) => navigate(e.target.value)}
             >
               {navItems.map((item) => (
                 <option key={item.path} value={item.path}>
