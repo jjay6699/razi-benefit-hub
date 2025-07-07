@@ -140,19 +140,20 @@ export const Companies = () => {
   if (selectedCompany) {
     return (
       <div className="space-y-6">
-        <div className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground rounded-lg p-6">
-          <div className="flex items-center gap-4">
+        <div className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground rounded-lg p-4 sm:p-6">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
             <Button 
               variant="secondary" 
               size="sm" 
               onClick={handleBackToCompanies}
+              className="self-start"
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back to Companies
             </Button>
-            <div>
-              <h1 className="text-3xl font-bold mb-2">{selectedCompany.name}</h1>
-              <p className="text-primary-foreground/90">Company staff members</p>
+            <div className="flex-1">
+              <h1 className="text-2xl sm:text-3xl font-bold mb-1 sm:mb-2 break-words">{selectedCompany.name}</h1>
+              <p className="text-primary-foreground/90 text-sm sm:text-base">Company staff members</p>
             </div>
           </div>
         </div>
@@ -171,36 +172,75 @@ export const Companies = () => {
                 <p className="mt-2 text-sm text-muted-foreground">Loading staff...</p>
               </div>
             ) : companyEmployees.length > 0 ? (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Employee ID</TableHead>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Annual Balance</TableHead>
-                    <TableHead>Current Balance</TableHead>
-                    <TableHead>Status</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
+              <>
+                {/* Mobile View - Cards */}
+                <div className="block md:hidden space-y-3">
                   {companyEmployees.map((employee) => (
-                    <TableRow 
-                      key={employee.id}
-                      className="cursor-pointer hover:bg-muted/50"
+                    <Card 
+                      key={employee.id} 
+                      className="p-4 cursor-pointer hover:bg-muted/50 transition-colors"
                       onClick={() => handleEmployeeClick(employee)}
                     >
-                      <TableCell className="font-medium">{employee.empId}</TableCell>
-                      <TableCell>{employee.name}</TableCell>
-                      <TableCell>RM {employee.annualBalance.toFixed(2)}</TableCell>
-                      <TableCell>RM {employee.currentBalance.toFixed(2)}</TableCell>
-                      <TableCell>
-                        <Badge variant={employee.currentBalance > 0 ? "default" : "secondary"}>
-                          {employee.currentBalance > 0 ? "Active" : "Depleted"}
-                        </Badge>
-                      </TableCell>
-                    </TableRow>
+                      <CardContent className="p-0 space-y-2">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <p className="font-medium text-sm">{employee.name}</p>
+                            <p className="text-xs text-muted-foreground">ID: {employee.empId}</p>
+                          </div>
+                          <Badge variant={employee.currentBalance > 0 ? "default" : "secondary"} className="text-xs">
+                            {employee.currentBalance > 0 ? "Active" : "Depleted"}
+                          </Badge>
+                        </div>
+                        
+                        <div className="grid grid-cols-2 gap-2 text-xs">
+                          <div>
+                            <p className="text-muted-foreground">Annual:</p>
+                            <p className="font-medium">RM {employee.annualBalance.toFixed(2)}</p>
+                          </div>
+                          <div>
+                            <p className="text-muted-foreground">Current:</p>
+                            <p className="font-medium">RM {employee.currentBalance.toFixed(2)}</p>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
                   ))}
-                </TableBody>
-              </Table>
+                </div>
+
+                {/* Desktop View - Table */}
+                <div className="hidden md:block overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Employee ID</TableHead>
+                        <TableHead>Name</TableHead>
+                        <TableHead>Annual Balance</TableHead>
+                        <TableHead>Current Balance</TableHead>
+                        <TableHead>Status</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {companyEmployees.map((employee) => (
+                        <TableRow 
+                          key={employee.id}
+                          className="cursor-pointer hover:bg-muted/50"
+                          onClick={() => handleEmployeeClick(employee)}
+                        >
+                          <TableCell className="font-medium text-sm">{employee.empId}</TableCell>
+                          <TableCell className="text-sm">{employee.name}</TableCell>
+                          <TableCell className="text-sm">RM {employee.annualBalance.toFixed(2)}</TableCell>
+                          <TableCell className="text-sm">RM {employee.currentBalance.toFixed(2)}</TableCell>
+                          <TableCell>
+                            <Badge variant={employee.currentBalance > 0 ? "default" : "secondary"} className="text-xs">
+                              {employee.currentBalance > 0 ? "Active" : "Depleted"}
+                            </Badge>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </>
             ) : (
               <div className="text-center py-8">
                 <p className="text-muted-foreground">No staff members found for this company.</p>

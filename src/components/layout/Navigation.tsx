@@ -29,7 +29,7 @@ export const Navigation = () => {
 
   return (
     <header className="bg-card border-b border-border sticky top-0 z-50">
-      <div className="container mx-auto max-w-[1300px] px-4">
+      <div className="container mx-auto max-w-[1300px] px-3 sm:px-4">
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center space-x-4">
             <h1 className="text-xl font-bold text-primary">

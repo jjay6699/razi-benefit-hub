@@ -78,68 +78,68 @@ export const Dashboard = () => {
 
   return (
     <div className="space-y-6">
-      <div className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground rounded-lg p-6">
-        <h1 className="text-3xl font-bold mb-2">Medical Benefit Dashboard</h1>
-        <p className="text-primary-foreground/90">
+      <div className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground rounded-lg p-4 sm:p-6">
+        <h1 className="text-2xl sm:text-3xl font-bold mb-1 sm:mb-2">Medical Benefit Dashboard</h1>
+        <p className="text-primary-foreground/90 text-sm sm:text-base">
           Manage your medical benefits system efficiently
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Employees</CardTitle>
-            <span className="text-2xl">👥</span>
+            <CardTitle className="text-xs sm:text-sm font-medium">Total Employees</CardTitle>
+            <span className="text-xl sm:text-2xl">👥</span>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.totalEmployees}</div>
+            <div className="text-xl sm:text-2xl font-bold">{stats.totalEmployees}</div>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Companies</CardTitle>
-            <span className="text-2xl">🏢</span>
+            <CardTitle className="text-xs sm:text-sm font-medium">Total Companies</CardTitle>
+            <span className="text-xl sm:text-2xl">🏢</span>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.totalCompanies}</div>
+            <div className="text-xl sm:text-2xl font-bold">{stats.totalCompanies}</div>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Transactions</CardTitle>
-            <span className="text-2xl">💳</span>
+            <CardTitle className="text-xs sm:text-sm font-medium">Total Transactions</CardTitle>
+            <span className="text-xl sm:text-2xl">💳</span>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.totalTransactions}</div>
+            <div className="text-xl sm:text-2xl font-bold">{stats.totalTransactions}</div>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Balance</CardTitle>
-            <span className="text-2xl">💰</span>
+            <CardTitle className="text-xs sm:text-sm font-medium">Total Balance</CardTitle>
+            <span className="text-xl sm:text-2xl">💰</span>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">RM {stats.totalBalance.toFixed(2)}</div>
+            <div className="text-xl sm:text-2xl font-bold">RM {stats.totalBalance.toFixed(2)}</div>
           </CardContent>
         </Card>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
         <Card>
           <CardHeader>
-            <CardTitle>Quick Actions</CardTitle>
+            <CardTitle className="text-base sm:text-lg">Quick Actions</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <Button asChild className="w-full" size="lg">
+          <CardContent className="space-y-3 sm:space-y-4">
+            <Button asChild className="w-full" size="sm">
               <Link to="/dashboard/staff">🔍 Search Employee</Link>
             </Button>
-            <Button asChild variant="outline" className="w-full" size="lg">
+            <Button asChild variant="outline" className="w-full" size="sm">
               <Link to="/dashboard/admin">⚙️ Admin Panel</Link>
             </Button>
-            <Button asChild variant="outline" className="w-full" size="lg">
+            <Button asChild variant="outline" className="w-full" size="sm">
               <Link to="/dashboard/companies">🏢 Manage Companies</Link>
             </Button>
           </CardContent>
@@ -147,21 +147,21 @@ export const Dashboard = () => {
 
         <Card>
           <CardHeader>
-            <CardTitle>System Overview</CardTitle>
+            <CardTitle className="text-base sm:text-lg">System Overview</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Amount Used:</span>
-                <span className="font-medium">RM {stats.totalAmountUsed.toFixed(2)}</span>
+                <span className="text-muted-foreground text-sm">Amount Used:</span>
+                <span className="font-medium text-sm">RM {stats.totalAmountUsed.toFixed(2)}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Remaining Balance:</span>
-                <span className="font-medium text-success">RM {stats.totalBalance.toFixed(2)}</span>
+                <span className="text-muted-foreground text-sm">Remaining Balance:</span>
+                <span className="font-medium text-success text-sm">RM {stats.totalBalance.toFixed(2)}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Active Employees:</span>
-                <span className="font-medium">{stats.totalEmployees}</span>
+                <span className="text-muted-foreground text-sm">Active Employees:</span>
+                <span className="font-medium text-sm">{stats.totalEmployees}</span>
               </div>
             </div>
           </CardContent>
@@ -169,12 +169,12 @@ export const Dashboard = () => {
 
         <Card>
           <CardHeader>
-            <CardTitle>Recent Activity</CardTitle>
+            <CardTitle className="text-base sm:text-lg">Recent Activity</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-center text-muted-foreground py-4">
-              <p>No recent activity</p>
-              <p className="text-sm mt-2">Start by adding employees or processing transactions</p>
+              <p className="text-sm">No recent activity</p>
+              <p className="text-xs mt-2">Start by adding employees or processing transactions</p>
             </div>
           </CardContent>
         </Card>
