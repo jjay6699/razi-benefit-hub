@@ -1,6 +1,6 @@
 import { Outlet } from 'react-router-dom';
 import { Navigation } from './Navigation';
-import { Footer } from './Footer';
+import { AppFooter } from './AppFooter';
 
 export const Layout = () => {
   return (
@@ -9,7 +9,7 @@ export const Layout = () => {
       <main className="container mx-auto max-w-[1300px] px-3 sm:px-4 py-4 sm:py-8 flex-1">
         <Outlet />
       </main>
-      <Footer />
+      <AppFooter />
     </div>
   );
 };
