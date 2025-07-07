@@ -15,7 +15,7 @@ export const SlideVerify = ({ onVerify, text = "Slide to verify", disabled = fal
   const sliderRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const maxPosition = 260; // Approximate width minus slider width
+  const [maxPosition, setMaxPosition] = useState(0);
 
   useEffect(() => {
     if (reset) {
@@ -24,6 +24,21 @@ export const SlideVerify = ({ onVerify, text = "Slide to verify", disabled = fal
       onVerify(false);
     }
   }, [reset, onVerify]);
+
+  useEffect(() => {
+    const updateMaxPosition = () => {
+      if (containerRef.current) {
+        const containerWidth = containerRef.current.offsetWidth;
+        const sliderWidth = 44; // 40px width + 4px for padding (w-10 + gap)
+        setMaxPosition(containerWidth - sliderWidth);
+      }
+    };
+
+    updateMaxPosition();
+    window.addEventListener('resize', updateMaxPosition);
+    
+    return () => window.removeEventListener('resize', updateMaxPosition);
+  }, []);
 
   const handleMouseDown = (e: React.MouseEvent) => {
     if (disabled || isVerified) return;
@@ -42,12 +57,13 @@ export const SlideVerify = ({ onVerify, text = "Slide to verify", disabled = fal
       if (!isDragging || !containerRef.current) return;
 
       const containerRect = containerRef.current.getBoundingClientRect();
-      const newPosition = Math.max(0, Math.min(maxPosition, e.clientX - containerRect.left - 20));
+      const newPosition = Math.max(0, Math.min(maxPosition, e.clientX - containerRect.left - 22));
       setSliderPosition(newPosition);
 
-      if (newPosition >= maxPosition * 0.9) {
+      if (newPosition >= maxPosition * 0.95) {
         setIsVerified(true);
         setIsDragging(false);
+        setSliderPosition(maxPosition);
         onVerify(true);
       }
     };
@@ -57,12 +73,13 @@ export const SlideVerify = ({ onVerify, text = "Slide to verify", disabled = fal
 
       const containerRect = containerRef.current.getBoundingClientRect();
       const touch = e.touches[0];
-      const newPosition = Math.max(0, Math.min(maxPosition, touch.clientX - containerRect.left - 20));
+      const newPosition = Math.max(0, Math.min(maxPosition, touch.clientX - containerRect.left - 22));
       setSliderPosition(newPosition);
 
-      if (newPosition >= maxPosition * 0.9) {
+      if (newPosition >= maxPosition * 0.95) {
         setIsVerified(true);
         setIsDragging(false);
+        setSliderPosition(maxPosition);
         onVerify(true);
       }
     };
