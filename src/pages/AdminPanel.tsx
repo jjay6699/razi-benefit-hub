@@ -37,6 +37,38 @@ export const AdminPanel = () => {
     setLoading(false);
   };
 
+  // Proper CSV parsing function that handles quoted fields and commas within values
+  const parseCSVLine = (line: string): string[] => {
+    const result: string[] = [];
+    let current = '';
+    let inQuotes = false;
+    
+    for (let i = 0; i < line.length; i++) {
+      const char = line[i];
+      const nextChar = line[i + 1];
+      
+      if (char === '"') {
+        if (inQuotes && nextChar === '"') {
+          // Handle escaped quotes
+          current += '"';
+          i++; // Skip next quote
+        } else {
+          // Toggle quote state
+          inQuotes = !inQuotes;
+        }
+      } else if (char === ',' && !inQuotes) {
+        // Field separator outside quotes
+        result.push(current.trim());
+        current = '';
+      } else {
+        current += char;
+      }
+    }
+    
+    result.push(current.trim());
+    return result;
+  };
+
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file || !selectedCompany) {
@@ -53,8 +85,16 @@ export const AdminPanel = () => {
 
     try {
       const text = await file.text();
-      const lines = text.split('\n').filter(line => line.trim());
-      const headers = lines[0].toLowerCase().split(',').map(h => h.trim());
+      // Normalize line endings and filter out truly empty lines
+      const lines = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n')
+        .split('\n')
+        .filter(line => line.trim() !== '');
+      
+      if (lines.length < 2) {
+        throw new Error('CSV file must contain at least a header row and one data row');
+      }
+
+      const headers = parseCSVLine(lines[0]).map(h => h.toLowerCase().trim());
       
       const empIdIndex = headers.findIndex(h => h.includes('emp'));
       const nameIndex = headers.findIndex(h => h.includes('name'));
@@ -68,16 +108,21 @@ export const AdminPanel = () => {
       const company = companies.find(c => c.id === selectedCompany);
       
       for (let i = 1; i < lines.length; i++) {
-        const columns = lines[i].split(',').map(c => c.trim());
+        const columns = parseCSVLine(lines[i]);
         
-        if (columns.length < 3) continue;
+        // Ensure we have enough columns
+        if (columns.length < Math.max(empIdIndex, nameIndex, balanceIndex) + 1) {
+          result.errors.push(`Line ${i + 1}: Insufficient columns`);
+          continue;
+        }
 
-        const empId = columns[empIdIndex];
-        const name = columns[nameIndex];
-        const balance = parseFloat(columns[balanceIndex]);
+        const empId = columns[empIdIndex]?.trim();
+        const name = columns[nameIndex]?.trim();
+        const balanceStr = columns[balanceIndex]?.trim();
+        const balance = parseFloat(balanceStr || '0');
 
-        if (!empId || !name || isNaN(balance)) {
-          result.errors.push(`Line ${i + 1}: Invalid data`);
+        if (!empId || !name || !balanceStr || isNaN(balance)) {
+          result.errors.push(`Line ${i + 1}: Missing or invalid data - EMP: "${empId}", Name: "${name}", Balance: "${balanceStr}"`);
           continue;
         }
 
