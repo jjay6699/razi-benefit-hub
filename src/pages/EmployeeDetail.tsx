@@ -74,9 +74,11 @@ export const EmployeeDetail = () => {
 
   const handleBack = () => {
     if (source === 'staff-search') {
-      navigate('/staff-search');
+      navigate('/dashboard/staff-search');
+    } else if (source === 'companies') {
+      navigate('/dashboard/companies');
     } else {
-      navigate('/staff-list');
+      navigate('/dashboard/staff-list');
     }
   };
 
@@ -182,7 +184,7 @@ export const EmployeeDetail = () => {
             onClick={handleBack}
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to {source === 'staff-search' ? 'Staff Search' : 'Staff List'}
+            Back to {source === 'staff-search' ? 'Staff Search' : source === 'companies' ? 'Companies' : 'Staff List'}
           </Button>
           <div>
             <h1 className="text-3xl font-bold mb-2">{employee.name}</h1>

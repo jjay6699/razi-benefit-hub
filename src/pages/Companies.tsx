@@ -111,7 +111,9 @@ export const Companies = () => {
   };
 
   const handleEmployeeClick = (employee: Employee) => {
-    navigate('/staff-list', { state: { selectedEmployeeId: employee.id } });
+    navigate(`/dashboard/employee/${employee.id}`, {
+      state: { source: 'companies' }
+    });
   };
 
   const handleDeleteCompany = async (companyId: string, companyName: string) => {
