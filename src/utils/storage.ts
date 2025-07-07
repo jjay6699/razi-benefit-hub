@@ -44,12 +44,12 @@ export const deleteCompany = async (companyId: string): Promise<boolean> => {
     .from('companies')
     .delete()
     .eq('id', companyId);
-  
+
   if (error) {
     console.error('Error deleting company:', error);
     return false;
   }
-  
+
   return true;
 };
 
