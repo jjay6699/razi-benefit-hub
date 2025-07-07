@@ -173,6 +173,8 @@ export const getTransactions = async (): Promise<Transaction[]> => {
     companyName: transaction.company_name,
     amount: Number(transaction.amount),
     description: transaction.description,
+    diagnosis: transaction.diagnosis,
+    medicalLeaveGranted: transaction.medical_leave_granted || false,
     date: transaction.date,
     balanceAfter: Number(transaction.balance_after),
   })) || [];
@@ -188,6 +190,8 @@ export const addTransaction = async (transaction: Omit<Transaction, 'id' | 'date
       company_name: transaction.companyName,
       amount: transaction.amount,
       description: transaction.description,
+      diagnosis: transaction.diagnosis,
+      medical_leave_granted: transaction.medicalLeaveGranted,
       balance_after: transaction.balanceAfter,
     }])
     .select()
@@ -206,6 +210,8 @@ export const addTransaction = async (transaction: Omit<Transaction, 'id' | 'date
     companyName: data.company_name,
     amount: Number(data.amount),
     description: data.description,
+    diagnosis: data.diagnosis,
+    medicalLeaveGranted: data.medical_leave_granted || false,
     date: data.date,
     balanceAfter: Number(data.balance_after),
   };
@@ -231,6 +237,8 @@ export const getEmployeeTransactions = async (employeeId: string): Promise<Trans
     companyName: transaction.company_name,
     amount: Number(transaction.amount),
     description: transaction.description,
+    diagnosis: transaction.diagnosis,
+    medicalLeaveGranted: transaction.medical_leave_granted || false,
     date: transaction.date,
     balanceAfter: Number(transaction.balance_after),
   })) || [];

@@ -80,10 +80,12 @@ export type Database = {
           company_name: string
           date: string
           description: string
+          diagnosis: string | null
           employee_emp_id: string
           employee_id: string
           employee_name: string
           id: string
+          medical_leave_granted: boolean | null
         }
         Insert: {
           amount: number
@@ -91,10 +93,12 @@ export type Database = {
           company_name: string
           date?: string
           description: string
+          diagnosis?: string | null
           employee_emp_id: string
           employee_id: string
           employee_name: string
           id?: string
+          medical_leave_granted?: boolean | null
         }
         Update: {
           amount?: number
@@ -102,10 +106,12 @@ export type Database = {
           company_name?: string
           date?: string
           description?: string
+          diagnosis?: string | null
           employee_emp_id?: string
           employee_id?: string
           employee_name?: string
           id?: string
+          medical_leave_granted?: boolean | null
         }
         Relationships: [
           {

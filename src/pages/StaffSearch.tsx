@@ -13,6 +13,8 @@ export const StaffSearch = () => {
   const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
   const [deductionAmount, setDeductionAmount] = useState('');
   const [description, setDescription] = useState('');
+  const [diagnosis, setDiagnosis] = useState('');
+  const [medicalLeave, setMedicalLeave] = useState(false);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [processing, setProcessing] = useState(false);
   const [searching, setSearching] = useState(false);
@@ -125,6 +127,8 @@ export const StaffSearch = () => {
         companyName: selectedEmployee.companyName,
         amount: amount,
         description: description.trim(),
+        diagnosis: diagnosis.trim() || undefined,
+        medicalLeaveGranted: medicalLeave,
         balanceAfter: newBalance,
       });
 
@@ -137,6 +141,8 @@ export const StaffSearch = () => {
       setTransactions([transaction, ...transactions]);
       setDeductionAmount('');
       setDescription('');
+      setDiagnosis('');
+      setMedicalLeave(false);
 
       toast({
         title: "Success",
@@ -160,6 +166,8 @@ export const StaffSearch = () => {
     setTransactions([]);
     setDeductionAmount('');
     setDescription('');
+    setDiagnosis('');
+    setMedicalLeave(false);
   };
 
   return (
@@ -280,6 +288,30 @@ export const StaffSearch = () => {
                   />
                 </div>
 
+                <div>
+                  <Label htmlFor="diagnosis">Diagnosis (Optional)</Label>
+                  <Input
+                    id="diagnosis"
+                    type="text"
+                    placeholder="e.g., Fever, Headache, etc."
+                    value={diagnosis}
+                    onChange={(e) => setDiagnosis(e.target.value)}
+                    className="mt-1"
+                    disabled={processing}
+                  />
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    id="medicalLeave"
+                    checked={medicalLeave}
+                    onChange={(e) => setMedicalLeave(e.target.checked)}
+                    disabled={processing}
+                  />
+                  <Label htmlFor="medicalLeave">Medical Leave (MC) Granted</Label>
+                </div>
+
                 <Button 
                   onClick={handleDeduction}
                   disabled={processing || !deductionAmount || !description}
@@ -305,11 +337,23 @@ export const StaffSearch = () => {
               {transactions.map((transaction) => (
                 <div key={transaction.id} className="border border-border rounded-lg p-4">
                   <div className="flex justify-between items-start mb-2">
-                    <div>
+                    <div className="flex-1">
                       <p className="font-medium">{transaction.description}</p>
-                      <p className="text-sm text-muted-foreground">
-                        {format(new Date(transaction.date), 'dd/MM/yyyy HH:mm')}
-                      </p>
+                      {transaction.diagnosis && (
+                        <p className="text-sm text-blue-600 font-medium">
+                          Diagnosis: {transaction.diagnosis}
+                        </p>
+                      )}
+                      <div className="flex items-center gap-4 mt-1">
+                        <p className="text-sm text-muted-foreground">
+                          {format(new Date(transaction.date), 'dd/MM/yyyy HH:mm')}
+                        </p>
+                        {transaction.medicalLeaveGranted && (
+                          <span className="text-xs bg-orange-100 text-orange-800 px-2 py-1 rounded">
+                            MC Given
+                          </span>
+                        )}
+                      </div>
                     </div>
                     <div className="text-right">
                       <p className="font-bold text-destructive">-RM {transaction.amount.toFixed(2)}</p>

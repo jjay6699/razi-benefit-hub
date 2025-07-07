@@ -23,6 +23,8 @@ export interface Transaction {
   companyName: string;
   amount: number;
   description: string;
+  diagnosis?: string;
+  medicalLeaveGranted: boolean;
   date: string;
   balanceAfter: number;
 }
