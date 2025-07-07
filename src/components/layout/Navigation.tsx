@@ -20,7 +20,7 @@ export const Navigation = () => {
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center space-x-4">
             <h1 className="text-xl font-bold text-primary">
-              AR RAZI MEDICAL BENEFIT SYSTEM
+              AR RAZI
             </h1>
           </div>
           
