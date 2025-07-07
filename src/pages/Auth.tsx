@@ -50,12 +50,15 @@ export const Auth = () => {
           description: "Please check your credentials.",
           variant: "destructive",
         });
+      } else {
+        // Force redirect to admin dashboard
+        window.location.href = '/dashboard';
       }
     } else {
-      setError('Invalid admin credentials');
+      setError('Invalid admin credentials. Only authorized administrators can access this section.');
       toast({
         title: "Access Denied",
-        description: "Invalid admin credentials.",
+        description: "Invalid admin credentials. Only authorized administrators can access this section.",
         variant: "destructive",
       });
     }
@@ -76,6 +79,9 @@ export const Auth = () => {
         description: error.message,
         variant: "destructive",
       });
+    } else {
+      // Force redirect to patient dashboard
+      window.location.href = '/patient';
     }
     
     setLoading(false);
