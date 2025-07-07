@@ -134,13 +134,13 @@ export const Dashboard = () => {
           </CardHeader>
           <CardContent className="space-y-4">
             <Button asChild className="w-full" size="lg">
-              <Link to="/staff">🔍 Search Employee</Link>
+              <Link to="/dashboard/staff">🔍 Search Employee</Link>
             </Button>
             <Button asChild variant="outline" className="w-full" size="lg">
-              <Link to="/admin">⚙️ Admin Panel</Link>
+              <Link to="/dashboard/admin">⚙️ Admin Panel</Link>
             </Button>
             <Button asChild variant="outline" className="w-full" size="lg">
-              <Link to="/companies">🏢 Manage Companies</Link>
+              <Link to="/dashboard/companies">🏢 Manage Companies</Link>
             </Button>
           </CardContent>
         </Card>
