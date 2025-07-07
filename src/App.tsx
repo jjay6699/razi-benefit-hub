@@ -7,6 +7,7 @@ import { Layout } from "./components/layout/Layout";
 import { Dashboard } from "./pages/Dashboard";
 import { AdminPanel } from "./pages/AdminPanel";
 import { StaffSearch } from "./pages/StaffSearch";
+import { StaffList } from "./pages/StaffList";
 import { Companies } from "./pages/Companies";
 import NotFound from "./pages/NotFound";
 
@@ -23,6 +24,7 @@ const App = () => (
             <Route index element={<Dashboard />} />
             <Route path="admin" element={<AdminPanel />} />
             <Route path="staff" element={<StaffSearch />} />
+            <Route path="staff-list" element={<StaffList />} />
             <Route path="companies" element={<Companies />} />
             <Route path="reports" element={<Dashboard />} />
           </Route>
