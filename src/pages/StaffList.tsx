@@ -165,10 +165,9 @@ export const StaffList = () => {
         <div className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground rounded-lg p-6">
           <div className="flex items-center gap-4">
             <Button 
-              variant="outline" 
+              variant="secondary" 
               size="sm" 
               onClick={handleBackToList}
-              className="bg-white/10 text-white border-white/20 hover:bg-white/20"
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back to Staff List
