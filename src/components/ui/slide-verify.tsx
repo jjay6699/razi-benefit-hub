@@ -29,8 +29,8 @@ export const SlideVerify = ({ onVerify, text = "Slide to verify", disabled = fal
     const updateMaxPosition = () => {
       if (containerRef.current) {
         const containerWidth = containerRef.current.offsetWidth;
-        const sliderWidth = 44; // 40px width + 4px for padding (w-10 + gap)
-        setMaxPosition(containerWidth - sliderWidth);
+        const sliderWidth = 48; // 40px width + 8px margin (w-10 + proper spacing)
+        setMaxPosition(containerWidth - sliderWidth - 8); // Leave 8px gap from end
       }
     };
 
@@ -57,7 +57,7 @@ export const SlideVerify = ({ onVerify, text = "Slide to verify", disabled = fal
       if (!isDragging || !containerRef.current) return;
 
       const containerRect = containerRef.current.getBoundingClientRect();
-      const newPosition = Math.max(0, Math.min(maxPosition, e.clientX - containerRect.left - 22));
+      const newPosition = Math.max(0, Math.min(maxPosition, e.clientX - containerRect.left - 24)); // 4px left + 20px slider center
       setSliderPosition(newPosition);
 
       if (newPosition >= maxPosition * 0.95) {
@@ -73,7 +73,7 @@ export const SlideVerify = ({ onVerify, text = "Slide to verify", disabled = fal
 
       const containerRect = containerRef.current.getBoundingClientRect();
       const touch = e.touches[0];
-      const newPosition = Math.max(0, Math.min(maxPosition, touch.clientX - containerRect.left - 22));
+      const newPosition = Math.max(0, Math.min(maxPosition, touch.clientX - containerRect.left - 24)); // 4px left + 20px slider center
       setSliderPosition(newPosition);
 
       if (newPosition >= maxPosition * 0.95) {
@@ -146,7 +146,7 @@ export const SlideVerify = ({ onVerify, text = "Slide to verify", disabled = fal
         {/* Slider */}
         <div
           ref={sliderRef}
-          className={`absolute top-1 left-1 w-10 h-10 rounded-md transition-all duration-300 cursor-pointer select-none flex items-center justify-center ${
+          className={`absolute left-1 w-10 h-10 rounded-md transition-all duration-300 cursor-pointer select-none flex items-center justify-center ${
             isVerified
               ? 'bg-green-500 text-white'
               : disabled
@@ -157,7 +157,9 @@ export const SlideVerify = ({ onVerify, text = "Slide to verify", disabled = fal
           }`}
           style={{ 
             transform: `translateX(${sliderPosition}px)`,
-            transition: isDragging ? 'none' : 'transform 0.3s ease'
+            transition: isDragging ? 'none' : 'transform 0.3s ease',
+            top: '50%',
+            marginTop: '-20px' // Half of height (40px/2) to center vertically
           }}
           onMouseDown={handleMouseDown}
           onTouchStart={handleTouchStart}
