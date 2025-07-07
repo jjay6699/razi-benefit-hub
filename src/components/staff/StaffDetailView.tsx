@@ -21,16 +21,18 @@ export const StaffDetailView = ({
   return (
     <div className="space-y-6">
       <div className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground rounded-lg p-6">
-        <div className="flex items-center gap-4">
-          <Button 
-            variant="secondary" 
-            size="sm" 
-            onClick={onBackToList}
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Staff List
-          </Button>
-          <div>
+        <div className="space-y-4">
+          <div className="flex justify-center">
+            <Button 
+              variant="secondary" 
+              size="sm" 
+              onClick={onBackToList}
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to Staff List
+            </Button>
+          </div>
+          <div className="text-center">
             <h1 className="text-3xl font-bold mb-2">{employee.name}</h1>
             <p className="text-primary-foreground/90">Employee ID: {employee.empId}</p>
           </div>
