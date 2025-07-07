@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { Layout } from "./components/layout/Layout";
 import { ProtectedRoute } from "./components/ProtectedRoute";
@@ -29,16 +29,31 @@ const AppRoutes = () => {
     );
   }
 
-  // If user is logged in but not admin, redirect to patient dashboard
-  if (user && profile?.role === 'patient') {
-    return <PatientDashboard />;
-  }
-
   return (
     <Routes>
-      <Route path="/auth" element={<Auth />} />
-      <Route path="/patient" element={<PatientDashboard />} />
+      {/* Root route - redirects based on authentication status */}
       <Route path="/" element={
+        !user ? (
+          <Auth />
+        ) : profile?.role === 'admin' ? (
+          <Navigate to="/dashboard" replace />
+        ) : (
+          <Navigate to="/patient" replace />
+        )
+      } />
+      
+      {/* Auth page */}
+      <Route path="/auth" element={<Auth />} />
+      
+      {/* Patient dashboard */}
+      <Route path="/patient" element={
+        <ProtectedRoute>
+          <PatientDashboard />
+        </ProtectedRoute>
+      } />
+      
+      {/* Admin dashboard and routes */}
+      <Route path="/dashboard" element={
         <ProtectedRoute adminOnly>
           <Layout />
         </ProtectedRoute>
@@ -50,6 +65,7 @@ const AppRoutes = () => {
         <Route path="companies" element={<Companies />} />
         <Route path="reports" element={<Reports />} />
       </Route>
+      
       <Route path="*" element={<NotFound />} />
     </Routes>
   );

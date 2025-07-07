@@ -3,12 +3,12 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
 const navItems = [
-  { path: '/', label: 'Dashboard', icon: '📊' },
-  { path: '/admin', label: 'Admin Panel', icon: '⚙️' },
-  { path: '/staff', label: 'Staff Search', icon: '🔍' },
-  { path: '/staff-list', label: 'Staff List', icon: '👥' },
-  { path: '/companies', label: 'Companies', icon: '🏢' },
-  { path: '/reports', label: 'Reports', icon: '📈' },
+  { path: '/dashboard', label: 'Dashboard', icon: '📊' },
+  { path: '/dashboard/admin', label: 'Admin Panel', icon: '⚙️' },
+  { path: '/dashboard/staff', label: 'Staff Search', icon: '🔍' },
+  { path: '/dashboard/staff-list', label: 'Staff List', icon: '👥' },
+  { path: '/dashboard/companies', label: 'Companies', icon: '🏢' },
+  { path: '/dashboard/reports', label: 'Reports', icon: '📈' },
 ];
 
 export const Navigation = () => {
