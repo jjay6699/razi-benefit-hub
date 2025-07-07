@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { SlideVerify } from '@/components/ui/slide-verify';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { Eye, EyeOff, Shield, User } from 'lucide-react';
@@ -16,6 +17,11 @@ export const Auth = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [activeTab, setActiveTab] = useState('patient-login');
+  
+  // Verification states
+  const [patientLoginVerified, setPatientLoginVerified] = useState(false);
+  const [adminLoginVerified, setAdminLoginVerified] = useState(false);
+  const [signupVerified, setSignupVerified] = useState(false);
   
   // Form states
   const [email, setEmail] = useState('');
@@ -36,6 +42,12 @@ export const Auth = () => {
 
   const handleAdminLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!adminLoginVerified) {
+      setError('Please complete the security verification first.');
+      return;
+    }
+    
     setLoading(true);
     setError('');
 
@@ -66,6 +78,12 @@ export const Auth = () => {
 
   const handlePatientLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!patientLoginVerified) {
+      setError('Please complete the security verification first.');
+      return;
+    }
+    
     setLoading(true);
     setError('');
 
@@ -85,6 +103,12 @@ export const Auth = () => {
 
   const handlePatientSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!signupVerified) {
+      setError('Please complete the security verification first.');
+      return;
+    }
+    
     setLoading(true);
     setError('');
 
@@ -133,6 +157,10 @@ export const Auth = () => {
     setPhoneNumber('');
     setConfirmPassword('');
     setError('');
+    // Reset verification states
+    setPatientLoginVerified(false);
+    setAdminLoginVerified(false);
+    setSignupVerified(false);
   };
 
   return (
@@ -207,7 +235,16 @@ export const Auth = () => {
                         </Button>
                       </div>
                     </div>
-                    <Button type="submit" className="w-full" disabled={loading}>
+                    <div className="space-y-2">
+                      <Label>Security Verification</Label>
+                      <SlideVerify 
+                        onVerify={setPatientLoginVerified}
+                        text="Slide to verify you're human"
+                        disabled={loading}
+                        reset={activeTab !== 'patient-login'}
+                      />
+                    </div>
+                    <Button type="submit" className="w-full" disabled={loading || !patientLoginVerified}>
                       {loading ? 'Signing In...' : 'Sign In'}
                     </Button>
                   </form>
@@ -259,7 +296,16 @@ export const Auth = () => {
                         </Button>
                       </div>
                     </div>
-                    <Button type="submit" className="w-full" disabled={loading}>
+                    <div className="space-y-2">
+                      <Label>Security Verification</Label>
+                      <SlideVerify 
+                        onVerify={setAdminLoginVerified}
+                        text="Slide to verify administrator access"
+                        disabled={loading}
+                        reset={activeTab !== 'admin-login'}
+                      />
+                    </div>
+                    <Button type="submit" className="w-full" disabled={loading || !adminLoginVerified}>
                       {loading ? 'Signing In...' : 'Admin Sign In'}
                     </Button>
                   </form>
@@ -356,7 +402,16 @@ export const Auth = () => {
                         disabled={loading}
                       />
                     </div>
-                    <Button type="submit" className="w-full" disabled={loading}>
+                    <div className="space-y-2">
+                      <Label>Security Verification</Label>
+                      <SlideVerify 
+                        onVerify={setSignupVerified}
+                        text="Slide to verify you're human"
+                        disabled={loading}
+                        reset={activeTab !== 'patient-signup'}
+                      />
+                    </div>
+                    <Button type="submit" className="w-full" disabled={loading || !signupVerified}>
                       {loading ? 'Creating Account...' : 'Create Account'}
                     </Button>
                   </form>
