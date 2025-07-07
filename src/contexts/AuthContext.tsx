@@ -52,13 +52,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          // Fetch profile immediately for better UX
+          // Don't set loading to false yet - wait for profile to load
           fetchUserProfile(session.user.id);
         } else {
           setProfile(null);
+          setLoading(false);
         }
-        
-        setLoading(false);
       }
     );
 
@@ -87,12 +86,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
       if (error && error.code !== 'PGRST116') {
         console.error('Error fetching profile:', error);
+        setLoading(false);
         return;
       }
 
       setProfile(data || null);
+      setLoading(false); // Set loading to false after profile is loaded
     } catch (error) {
       console.error('Error fetching profile:', error);
+      setLoading(false);
     }
   };
 
