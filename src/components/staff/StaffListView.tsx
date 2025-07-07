@@ -75,44 +75,49 @@ export const StaffListView = ({
       </div>
 
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <span>All Staff ({filteredEmployees.length})</span>
-              {selectedEmployees.size > 0 && (
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-muted-foreground">
-                    {selectedEmployees.size} selected
-                  </span>
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <Button variant="destructive" size="sm">
-                        <Trash2 className="h-4 w-4 mr-2" />
-                        Delete Selected ({selectedEmployees.size})
-                      </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Delete Selected Employees</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          Are you sure you want to delete {selectedEmployees.size} employee(s)? This action cannot be undone.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction
-                          onClick={onBulkDelete}
-                          className="bg-red-600 hover:bg-red-700"
-                        >
-                          Delete All Selected
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
-                </div>
-              )}
+        <CardHeader className="space-y-4">
+          <div className="flex flex-col gap-4 sm:gap-0">
+            {/* Title and selection actions */}
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <div className="flex items-center gap-4">
+                <h2 className="text-lg sm:text-xl font-semibold">All Staff ({filteredEmployees.length})</h2>
+                {selectedEmployees.size > 0 && (
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-muted-foreground">
+                      {selectedEmployees.size} selected
+                    </span>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="destructive" size="sm">
+                          <Trash2 className="h-4 w-4 mr-2" />
+                          Delete Selected ({selectedEmployees.size})
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Delete Selected Employees</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Are you sure you want to delete {selectedEmployees.size} employee(s)? This action cannot be undone.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={onBulkDelete}
+                            className="bg-red-600 hover:bg-red-700"
+                          >
+                            Delete All Selected
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
+                )}
+              </div>
             </div>
-            <div className="relative w-80">
+            
+            {/* Search bar */}
+            <div className="relative w-full sm:w-80 sm:ml-auto">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
               <Input
                 placeholder="Search by name, ID, or company..."
@@ -121,7 +126,7 @@ export const StaffListView = ({
                 className="pl-10"
               />
             </div>
-          </CardTitle>
+          </div>
         </CardHeader>
         <CardContent>
           {loading ? (
