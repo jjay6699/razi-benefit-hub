@@ -77,6 +77,30 @@ export const getEmployees = async (): Promise<Employee[]> => {
   })) || [];
 };
 
+export const getEmployeeById = async (employeeId: string): Promise<Employee | null> => {
+  const { data, error } = await supabase
+    .from('employees')
+    .select('*')
+    .eq('id', employeeId)
+    .single();
+  
+  if (error) {
+    console.error('Error fetching employee by ID:', error);
+    return null;
+  }
+  
+  return {
+    id: data.id,
+    empId: data.emp_id,
+    name: data.name,
+    companyId: data.company_id,
+    companyName: data.company_name,
+    annualBalance: Number(data.annual_balance),
+    currentBalance: Number(data.current_balance),
+    createdAt: data.created_at,
+  };
+};
+
 export const addEmployee = async (employee: Omit<Employee, 'id' | 'createdAt'>): Promise<Employee | null> => {
   const { data, error } = await supabase
     .from('employees')

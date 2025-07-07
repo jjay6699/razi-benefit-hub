@@ -1,19 +1,16 @@
 import { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
-import { getEmployees, deleteEmployee, getEmployeeTransactions } from '@/utils/storage';
-import { Employee, Transaction } from '@/types';
+import { getEmployees, deleteEmployee } from '@/utils/storage';
+import { Employee } from '@/types';
 import { StaffListView } from '@/components/staff/StaffListView';
-import { StaffDetailView } from '@/components/staff/StaffDetailView';
 
 export const StaffList = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [filteredEmployees, setFilteredEmployees] = useState<Employee[]>([]);
-  const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
-  const [employeeTransactions, setEmployeeTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
-  const [loadingTransactions, setLoadingTransactions] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedEmployees, setSelectedEmployees] = useState<Set<string>>(new Set());
@@ -35,22 +32,10 @@ export const StaffList = () => {
     }
   };
 
-  const handleEmployeeClick = async (employee: Employee) => {
-    setSelectedEmployee(employee);
-    setLoadingTransactions(true);
-    
-    try {
-      const transactions = await getEmployeeTransactions(employee.id);
-      setEmployeeTransactions(transactions);
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to load employee transactions",
-        variant: "destructive",
-      });
-    } finally {
-      setLoadingTransactions(false);
-    }
+  const handleEmployeeClick = (employee: Employee) => {
+    navigate(`/dashboard/employee/${employee.id}`, {
+      state: { source: 'staff-list' }
+    });
   };
 
   useEffect(() => {
@@ -91,11 +76,6 @@ export const StaffList = () => {
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
-  };
-
-  const handleBackToList = () => {
-    setSelectedEmployee(null);
-    setEmployeeTransactions([]);
   };
 
   const handleDeleteEmployee = async (employeeId: string, employeeName: string) => {
@@ -170,17 +150,6 @@ export const StaffList = () => {
     }
   };
 
-
-  if (selectedEmployee) {
-    return (
-      <StaffDetailView
-        employee={selectedEmployee}
-        transactions={employeeTransactions}
-        loadingTransactions={loadingTransactions}
-        onBackToList={handleBackToList}
-      />
-    );
-  }
 
   return (
     <StaffListView

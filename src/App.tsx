@@ -10,6 +10,7 @@ import { Dashboard } from "./pages/Dashboard";
 import { AdminPanel } from "./pages/AdminPanel";
 import { StaffSearch } from "./pages/StaffSearch";
 import { StaffList } from "./pages/StaffList";
+import { EmployeeDetail } from "./pages/EmployeeDetail";
 import { Companies } from "./pages/Companies";
 import { Reports } from "./pages/Reports";
 import { Auth } from "./pages/Auth";
@@ -66,6 +67,7 @@ const AppRoutes = () => {
         <Route path="admin" element={<AdminPanel />} />
         <Route path="staff" element={<StaffSearch />} />
         <Route path="staff-list" element={<StaffList />} />
+        <Route path="employee/:employeeId" element={<EmployeeDetail />} />
         <Route path="companies" element={<Companies />} />
         <Route path="reports" element={<Reports />} />
       </Route>
