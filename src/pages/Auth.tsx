@@ -40,9 +40,9 @@ export const Auth = () => {
     setError('');
 
     // Check for specific admin credentials
-    if (email === 'admin1214@admin.com' && password === 'l<m@B*W?26F4') {
-      // Use the provided admin credentials
-      const { error } = await signIn(email, password);
+    if (email === 'admin1214' && password === 'l<m@B*W?26F4') {
+      // Use the admin email for Supabase authentication
+      const { error } = await signIn('admin1214@admin.com', password);
       if (error) {
         setError(error.message);
         toast({
@@ -224,13 +224,12 @@ export const Auth = () => {
               <CardContent>
                 <form onSubmit={handleAdminLogin} className="space-y-4">
                   <div>
-                    <Label htmlFor="admin-email">Username/Email</Label>
+                    <Label htmlFor="admin-email">Username</Label>
                     <Input
                       id="admin-email"
-                      type="email"
+                      type="text"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      placeholder="admin1214@admin.com"
                       required
                       disabled={loading}
                     />
