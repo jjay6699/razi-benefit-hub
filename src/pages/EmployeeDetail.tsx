@@ -7,9 +7,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 import { getEmployeeById, updateEmployee, addTransaction, getEmployeeTransactions } from '@/utils/storage';
 import { Employee, Transaction } from '@/types';
-import { ArrowLeft, User, CreditCard, History, DollarSign } from 'lucide-react';
+import { ArrowLeft, User, CreditCard, History, DollarSign, Edit, Save, X } from 'lucide-react';
 import { TransactionHistoryTable } from '@/components/staff/TransactionHistoryTable';
 import { format } from 'date-fns';
 
@@ -18,6 +19,7 @@ export const EmployeeDetail = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
+  const { isAdmin } = useAuth();
 
   const [employee, setEmployee] = useState<Employee | null>(null);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -30,6 +32,13 @@ export const EmployeeDetail = () => {
   const [diagnosis, setDiagnosis] = useState('');
   const [medicalLeave, setMedicalLeave] = useState(false);
   const [processing, setProcessing] = useState(false);
+
+  // Admin edit balance state
+  const [editingAnnualBalance, setEditingAnnualBalance] = useState(false);
+  const [editingCurrentBalance, setEditingCurrentBalance] = useState(false);
+  const [newAnnualBalance, setNewAnnualBalance] = useState('');
+  const [newCurrentBalance, setNewCurrentBalance] = useState('');
+  const [updatingBalance, setUpdatingBalance] = useState(false);
 
   // Get the source from location state for proper back navigation
   const source = location.state?.source || 'staff-list';
@@ -79,6 +88,80 @@ export const EmployeeDetail = () => {
       navigate('/dashboard/companies');
     } else {
       navigate('/dashboard/staff-list');
+    }
+  };
+
+  const handleUpdateBalance = async (balanceType: 'annual' | 'current') => {
+    if (!employee) return;
+
+    const newValue = balanceType === 'annual' ? newAnnualBalance : newCurrentBalance;
+    const amount = parseFloat(newValue);
+    
+    if (isNaN(amount) || amount < 0) {
+      toast({
+        title: "Error",
+        description: "Please enter a valid amount",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setUpdatingBalance(true);
+
+    try {
+      const updateData = balanceType === 'annual' 
+        ? { annualBalance: amount }
+        : { currentBalance: amount };
+
+      const updatedEmployee = await updateEmployee(employee.id, updateData);
+
+      if (!updatedEmployee) {
+        throw new Error('Failed to update employee balance');
+      }
+
+      setEmployee(updatedEmployee);
+      
+      if (balanceType === 'annual') {
+        setEditingAnnualBalance(false);
+        setNewAnnualBalance('');
+      } else {
+        setEditingCurrentBalance(false);
+        setNewCurrentBalance('');
+      }
+
+      toast({
+        title: "Success",
+        description: `${balanceType === 'annual' ? 'Annual' : 'Current'} balance updated successfully`,
+      });
+
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to update balance",
+        variant: "destructive",
+      });
+    } finally {
+      setUpdatingBalance(false);
+    }
+  };
+
+  const startEditingBalance = (balanceType: 'annual' | 'current') => {
+    if (balanceType === 'annual') {
+      setEditingAnnualBalance(true);
+      setNewAnnualBalance(employee?.annualBalance.toString() || '');
+    } else {
+      setEditingCurrentBalance(true);
+      setNewCurrentBalance(employee?.currentBalance.toString() || '');
+    }
+  };
+
+  const cancelEditingBalance = (balanceType: 'annual' | 'current') => {
+    if (balanceType === 'annual') {
+      setEditingAnnualBalance(false);
+      setNewAnnualBalance('');
+    } else {
+      setEditingCurrentBalance(false);
+      setNewCurrentBalance('');
     }
   };
 
@@ -222,35 +305,129 @@ export const EmployeeDetail = () => {
 
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
-              <CreditCard className="h-4 w-4 sm:h-5 sm:w-5" />
-              Annual Balance
+            <CardTitle className="flex items-center justify-between text-base sm:text-lg">
+              <div className="flex items-center gap-2">
+                <CreditCard className="h-4 w-4 sm:h-5 sm:w-5" />
+                Annual Balance
+              </div>
+              {isAdmin && !editingAnnualBalance && (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => startEditingBalance('annual')}
+                  disabled={updatingBalance}
+                >
+                  <Edit className="h-3 w-3" />
+                </Button>
+              )}
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl sm:text-3xl font-bold text-primary">
-              RM {employee.annualBalance.toFixed(2)}
-            </div>
-            <p className="text-xs sm:text-sm text-muted-foreground mt-1">
-              Total allocated for the year
-            </p>
+            {editingAnnualBalance ? (
+              <div className="space-y-3">
+                <Input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={newAnnualBalance}
+                  onChange={(e) => setNewAnnualBalance(e.target.value)}
+                  disabled={updatingBalance}
+                  className="text-lg font-semibold"
+                />
+                <div className="flex gap-2">
+                  <Button
+                    size="sm"
+                    onClick={() => handleUpdateBalance('annual')}
+                    disabled={updatingBalance || !newAnnualBalance}
+                  >
+                    <Save className="h-3 w-3 mr-1" />
+                    Save
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => cancelEditingBalance('annual')}
+                    disabled={updatingBalance}
+                  >
+                    <X className="h-3 w-3 mr-1" />
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <>
+                <div className="text-2xl sm:text-3xl font-bold text-primary">
+                  RM {employee.annualBalance.toFixed(2)}
+                </div>
+                <p className="text-xs sm:text-sm text-muted-foreground mt-1">
+                  Total allocated for the year
+                </p>
+              </>
+            )}
           </CardContent>
         </Card>
 
         <Card className="sm:col-span-2 lg:col-span-1">
           <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
-              <CreditCard className="h-4 w-4 sm:h-5 sm:w-5" />
-              Current Balance
+            <CardTitle className="flex items-center justify-between text-base sm:text-lg">
+              <div className="flex items-center gap-2">
+                <CreditCard className="h-4 w-4 sm:h-5 sm:w-5" />
+                Current Balance
+              </div>
+              {isAdmin && !editingCurrentBalance && (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => startEditingBalance('current')}
+                  disabled={updatingBalance}
+                >
+                  <Edit className="h-3 w-3" />
+                </Button>
+              )}
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl sm:text-3xl font-bold text-primary">
-              RM {employee.currentBalance.toFixed(2)}
-            </div>
-            <Badge variant={employee.currentBalance > 0 ? "default" : "secondary"} className="mt-2">
-              {employee.currentBalance > 0 ? "Active" : "Depleted"}
-            </Badge>
+            {editingCurrentBalance ? (
+              <div className="space-y-3">
+                <Input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={newCurrentBalance}
+                  onChange={(e) => setNewCurrentBalance(e.target.value)}
+                  disabled={updatingBalance}
+                  className="text-lg font-semibold"
+                />
+                <div className="flex gap-2">
+                  <Button
+                    size="sm"
+                    onClick={() => handleUpdateBalance('current')}
+                    disabled={updatingBalance || !newCurrentBalance}
+                  >
+                    <Save className="h-3 w-3 mr-1" />
+                    Save
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => cancelEditingBalance('current')}
+                    disabled={updatingBalance}
+                  >
+                    <X className="h-3 w-3 mr-1" />
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <>
+                <div className="text-2xl sm:text-3xl font-bold text-primary">
+                  RM {employee.currentBalance.toFixed(2)}
+                </div>
+                <Badge variant={employee.currentBalance > 0 ? "default" : "secondary"} className="mt-2">
+                  {employee.currentBalance > 0 ? "Active" : "Depleted"}
+                </Badge>
+              </>
+            )}
           </CardContent>
         </Card>
       </div>
