@@ -4,7 +4,14 @@ export const AppFooter = () => {
       <div className="text-center">
         <p className="text-sm text-muted-foreground">
           © Copyright 2025 | All Rights Reserved | Created by{' '}
-          <span className="text-primary font-medium">JJAY TECH RESOURCES</span>
+          <a 
+            href="https://jjay.info" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="font-medium text-primary hover:text-primary/80 transition-colors duration-200 underline decoration-primary/30 hover:decoration-primary/60"
+          >
+            JJAY TECH RESOURCES
+          </a>
         </p>
       </div>
     </footer>
