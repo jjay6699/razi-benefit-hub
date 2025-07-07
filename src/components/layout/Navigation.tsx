@@ -8,7 +8,6 @@ import { LogOut } from 'lucide-react';
 const navItems = [
   { path: '/dashboard', label: 'Dashboard', icon: '📊' },
   { path: '/dashboard/admin', label: 'Admin Panel', icon: '⚙️' },
-  { path: '/dashboard/staff', label: 'Staff Search', icon: '🔍' },
   { path: '/dashboard/staff-list', label: 'Staff List', icon: '👥' },
   { path: '/dashboard/companies', label: 'Companies', icon: '🏢' },
   { path: '/dashboard/reports', label: 'Reports', icon: '📈' },

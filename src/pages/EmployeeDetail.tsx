@@ -261,68 +261,89 @@ export const EmployeeDetail = () => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="amount">Deduction Amount (RM)</Label>
-              <Input
-                id="amount"
-                type="number"
-                step="0.01"
-                min="0"
-                max={employee.currentBalance}
-                placeholder="0.00"
-                value={deductionAmount}
-                onChange={(e) => setDeductionAmount(e.target.value)}
-                className="mt-1"
-                disabled={processing}
-              />
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="amount" className="text-sm font-medium">
+                  Deduction Amount (RM) <span className="text-destructive">*</span>
+                </Label>
+                <Input
+                  id="amount"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  max={employee.currentBalance}
+                  placeholder="0.00"
+                  value={deductionAmount}
+                  onChange={(e) => setDeductionAmount(e.target.value)}
+                  disabled={processing}
+                  className="text-lg font-semibold"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Available: RM {employee.currentBalance.toFixed(2)}
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="description" className="text-sm font-medium">
+                  Description <span className="text-destructive">*</span>
+                </Label>
+                <Input
+                  id="description"
+                  type="text"
+                  placeholder="Medical consultation, medicine, etc."
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  disabled={processing}
+                />
+              </div>
             </div>
 
-            <div>
-              <Label htmlFor="description">Description</Label>
-              <Input
-                id="description"
-                type="text"
-                placeholder="Medical consultation, medicine, etc."
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                className="mt-1"
-                disabled={processing}
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="diagnosis">Diagnosis (Optional)</Label>
+            <div className="space-y-2">
+              <Label htmlFor="diagnosis" className="text-sm font-medium">
+                Diagnosis (Optional)
+              </Label>
               <Input
                 id="diagnosis"
                 type="text"
                 placeholder="e.g., Fever, Headache, etc."
                 value={diagnosis}
                 onChange={(e) => setDiagnosis(e.target.value)}
-                className="mt-1"
                 disabled={processing}
               />
             </div>
 
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-3 p-3 bg-muted/30 rounded-md">
               <Checkbox
                 id="medicalLeave"
                 checked={medicalLeave}
                 onCheckedChange={(checked) => setMedicalLeave(!!checked)}
                 disabled={processing}
               />
-              <Label htmlFor="medicalLeave">Medical Leave (MC) Granted</Label>
+              <Label htmlFor="medicalLeave" className="text-sm font-medium cursor-pointer">
+                Medical Leave (MC) Granted
+              </Label>
             </div>
-          </div>
 
-          <Button 
-            onClick={handleDeduction}
-            disabled={processing || !deductionAmount || !description || employee.currentBalance <= 0}
-            className="w-full mt-4"
-            size="lg"
-          >
-            {processing ? 'Processing...' : '💳 Process Deduction'}
-          </Button>
+            <Button 
+              onClick={handleDeduction}
+              disabled={processing || !deductionAmount || !description || employee.currentBalance <= 0}
+              className="w-full mt-6"
+              size="lg"
+            >
+              {processing ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  Processing...
+                </>
+              ) : (
+                <>
+                  <DollarSign className="h-4 w-4 mr-2" />
+                  Process Deduction
+                </>
+              )}
+            </Button>
+          </div>
         </CardContent>
       </Card>
 
