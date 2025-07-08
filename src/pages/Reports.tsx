@@ -240,7 +240,7 @@ export const Reports = () => {
       <div className="grid gap-6 md:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle>Company Spending Summary</CardTitle>
+            <CardTitle>Top Company Spending</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
