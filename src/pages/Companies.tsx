@@ -28,7 +28,7 @@ import { useToast } from '@/hooks/use-toast';
 import { getCompanies, addCompany, getEmployees, deleteCompany } from '@/utils/storage';
 import { Company, Employee } from '@/types';
 import { ArrowLeft, Building2, Users, Trash2 } from 'lucide-react';
-import { format } from 'date-fns';
+import { formatDate } from '@/utils/dateUtils';
 
 export const Companies = () => {
   const navigate = useNavigate();
@@ -317,7 +317,7 @@ export const Companies = () => {
                         {company.name}
                       </h3>
                       <p className="text-sm text-muted-foreground">
-                        Created: {format(new Date(company.createdAt), 'dd/MM/yyyy')}
+                        Created: {formatDate(company.createdAt)}
                       </p>
                       <p className="text-sm text-muted-foreground mt-1">
                         Click to view staff →

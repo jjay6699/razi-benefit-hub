@@ -4,7 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Employee, Transaction } from '@/types';
 import { ArrowLeft, User, CreditCard, History } from 'lucide-react';
 import { TransactionHistoryTable } from './TransactionHistoryTable';
-import { format } from 'date-fns';
+import { formatDate } from '@/utils/dateUtils';
 
 interface StaffDetailViewProps {
   employee: Employee;
@@ -60,7 +60,7 @@ export const StaffDetailView = ({
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Joined</p>
-                <p className="font-medium">{format(new Date(employee.createdAt), 'dd/MM/yyyy')}</p>
+                <p className="font-medium">{formatDate(employee.createdAt)}</p>
               </div>
             </div>
           </CardContent>

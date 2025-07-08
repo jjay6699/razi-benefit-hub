@@ -2,7 +2,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Transaction } from '@/types';
-import { format } from 'date-fns';
+import { formatDate, formatDateRange } from '@/utils/dateUtils';
 
 interface TransactionHistoryTableProps {
   transactions: Transaction[];
@@ -37,7 +37,7 @@ export const TransactionHistoryTable = ({ transactions, loading }: TransactionHi
               <div className="flex justify-between items-start">
                 <div>
                   <p className="font-medium text-sm">{transaction.description}</p>
-                  <p className="text-xs text-muted-foreground">{format(new Date(transaction.date), 'dd/MM/yyyy')}</p>
+                  <p className="text-xs text-muted-foreground">{formatDate(transaction.date)}</p>
                 </div>
                 <div className="text-right">
                   <p className="font-bold text-sm">RM {transaction.amount.toFixed(2)}</p>
@@ -59,8 +59,7 @@ export const TransactionHistoryTable = ({ transactions, loading }: TransactionHi
                   </Badge>
                   {transaction.medicalLeaveGranted && transaction.mcDateFrom && transaction.mcDateTo && (
                     <div className="text-xs text-muted-foreground">
-                      {format(new Date(transaction.mcDateFrom), 'dd/MM/yyyy')} - {format(new Date(transaction.mcDateTo), 'dd/MM/yyyy')} 
-                      ({Math.ceil((new Date(transaction.mcDateTo).getTime() - new Date(transaction.mcDateFrom).getTime()) / (1000 * 60 * 60 * 24)) + 1} days)
+                      {formatDateRange(transaction.mcDateFrom, transaction.mcDateTo)}
                     </div>
                   )}
                 </div>
@@ -86,7 +85,7 @@ export const TransactionHistoryTable = ({ transactions, loading }: TransactionHi
           <TableBody>
             {transactions.map((transaction) => (
               <TableRow key={transaction.id}>
-                <TableCell className="text-sm">{format(new Date(transaction.date), 'dd/MM/yyyy')}</TableCell>
+                <TableCell className="text-sm">{formatDate(transaction.date)}</TableCell>
                 <TableCell className="text-sm">{transaction.description}</TableCell>
                 <TableCell>
                   {transaction.diagnosis ? (
@@ -103,9 +102,7 @@ export const TransactionHistoryTable = ({ transactions, loading }: TransactionHi
                     </Badge>
                     {transaction.medicalLeaveGranted && transaction.mcDateFrom && transaction.mcDateTo && (
                       <div className="text-xs text-muted-foreground">
-                        {format(new Date(transaction.mcDateFrom), 'dd/MM/yyyy')} - {format(new Date(transaction.mcDateTo), 'dd/MM/yyyy')}
-                        <br />
-                        ({Math.ceil((new Date(transaction.mcDateTo).getTime() - new Date(transaction.mcDateFrom).getTime()) / (1000 * 60 * 60 * 24)) + 1} days)
+                        {formatDateRange(transaction.mcDateFrom, transaction.mcDateTo)}
                       </div>
                     )}
                   </div>
