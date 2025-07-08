@@ -10,7 +10,7 @@ import { Employee, Transaction } from '@/types';
 import { User, CreditCard, History, LogOut, AlertCircle } from 'lucide-react';
 import { PatientHeader } from '@/components/layout/PatientHeader';
 import { AppFooter } from '@/components/layout/AppFooter';
-import { formatDate } from '@/utils/dateUtils';
+import { formatDate, formatDateRange } from '@/utils/dateUtils';
 
 export const PatientDashboard = () => {
   const [employee, setEmployee] = useState<Employee | null>(null);
@@ -231,9 +231,16 @@ export const PatientDashboard = () => {
                               <p className="font-bold text-primary">
                                 RM {transaction.amount.toFixed(2)}
                               </p>
-                              <Badge variant={transaction.medicalLeaveGranted ? "default" : "secondary"} className="text-xs mt-1">
-                                {transaction.medicalLeaveGranted ? "MC Granted" : "No MC"}
-                              </Badge>
+                              <div className="space-y-1">
+                                <Badge variant={transaction.medicalLeaveGranted ? "default" : "secondary"} className="text-xs">
+                                  {transaction.medicalLeaveGranted ? "MC Granted" : "No MC"}
+                                </Badge>
+                                {transaction.medicalLeaveGranted && transaction.mcDateFrom && transaction.mcDateTo && (
+                                  <div className="text-xs text-muted-foreground">
+                                    {formatDateRange(transaction.mcDateFrom, transaction.mcDateTo)}
+                                  </div>
+                                )}
+                              </div>
                             </div>
                           </div>
                           
