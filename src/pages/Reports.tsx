@@ -10,6 +10,7 @@ import { useToast } from '@/hooks/use-toast';
 import { getEmployees, getCompanies, getTransactions } from '@/utils/storage';
 import { Employee, Company, Transaction } from '@/types';
 import { TrendingUp, Users, Building, CreditCard, Filter } from 'lucide-react';
+import { format } from 'date-fns';
 
 export const Reports = () => {
   const [employees, setEmployees] = useState<Employee[]>([]);
@@ -341,7 +342,7 @@ export const Reports = () => {
             <TableBody>
               {filteredTransactions.slice(0, 10).map((transaction) => (
                 <TableRow key={transaction.id}>
-                  <TableCell>{new Date(transaction.date).toLocaleDateString()}</TableCell>
+                  <TableCell>{format(new Date(transaction.date), 'dd/MM/yyyy')}</TableCell>
                   <TableCell>{transaction.employeeName}</TableCell>
                   <TableCell>{transaction.companyName}</TableCell>
                   <TableCell>{transaction.description}</TableCell>

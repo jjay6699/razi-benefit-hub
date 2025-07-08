@@ -10,6 +10,7 @@ import { Employee, Transaction } from '@/types';
 import { User, CreditCard, History, LogOut, AlertCircle } from 'lucide-react';
 import { PatientHeader } from '@/components/layout/PatientHeader';
 import { AppFooter } from '@/components/layout/AppFooter';
+import { format } from 'date-fns';
 
 export const PatientDashboard = () => {
   const [employee, setEmployee] = useState<Employee | null>(null);
@@ -223,7 +224,7 @@ export const PatientDashboard = () => {
                             <div>
                               <p className="font-medium">{transaction.description}</p>
                               <p className="text-sm text-muted-foreground">
-                                {new Date(transaction.date).toLocaleDateString()}
+                                {format(new Date(transaction.date), 'dd/MM/yyyy')}
                               </p>
                             </div>
                             <div className="text-right">

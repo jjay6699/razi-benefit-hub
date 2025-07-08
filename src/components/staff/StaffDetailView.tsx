@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Employee, Transaction } from '@/types';
 import { ArrowLeft, User, CreditCard, History } from 'lucide-react';
 import { TransactionHistoryTable } from './TransactionHistoryTable';
+import { format } from 'date-fns';
 
 interface StaffDetailViewProps {
   employee: Employee;
@@ -59,7 +60,7 @@ export const StaffDetailView = ({
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Joined</p>
-                <p className="font-medium">{new Date(employee.createdAt).toLocaleDateString()}</p>
+                <p className="font-medium">{format(new Date(employee.createdAt), 'dd/MM/yyyy')}</p>
               </div>
             </div>
           </CardContent>
