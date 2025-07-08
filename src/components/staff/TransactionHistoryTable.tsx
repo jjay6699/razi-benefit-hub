@@ -37,7 +37,7 @@ export const TransactionHistoryTable = ({ transactions, loading }: TransactionHi
               <div className="flex justify-between items-start">
                 <div>
                   <p className="font-medium text-sm">{transaction.description}</p>
-                  <p className="text-xs text-muted-foreground">{new Date(transaction.date).toLocaleDateString()}</p>
+                  <p className="text-xs text-muted-foreground">{format(new Date(transaction.date), 'dd/MM/yyyy')}</p>
                 </div>
                 <div className="text-right">
                   <p className="font-bold text-sm">RM {transaction.amount.toFixed(2)}</p>
@@ -86,7 +86,7 @@ export const TransactionHistoryTable = ({ transactions, loading }: TransactionHi
           <TableBody>
             {transactions.map((transaction) => (
               <TableRow key={transaction.id}>
-                <TableCell className="text-sm">{new Date(transaction.date).toLocaleDateString()}</TableCell>
+                <TableCell className="text-sm">{format(new Date(transaction.date), 'dd/MM/yyyy')}</TableCell>
                 <TableCell className="text-sm">{transaction.description}</TableCell>
                 <TableCell>
                   {transaction.diagnosis ? (
