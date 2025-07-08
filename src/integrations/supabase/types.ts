@@ -118,6 +118,8 @@ export type Database = {
           employee_id: string
           employee_name: string
           id: string
+          mc_date_from: string | null
+          mc_date_to: string | null
           medical_leave_granted: boolean | null
         }
         Insert: {
@@ -131,6 +133,8 @@ export type Database = {
           employee_id: string
           employee_name: string
           id?: string
+          mc_date_from?: string | null
+          mc_date_to?: string | null
           medical_leave_granted?: boolean | null
         }
         Update: {
@@ -144,6 +148,8 @@ export type Database = {
           employee_id?: string
           employee_name?: string
           id?: string
+          mc_date_from?: string | null
+          mc_date_to?: string | null
           medical_leave_granted?: boolean | null
         }
         Relationships: [

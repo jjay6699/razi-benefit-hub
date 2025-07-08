@@ -25,6 +25,8 @@ export interface Transaction {
   description: string;
   diagnosis?: string;
   medicalLeaveGranted: boolean;
+  mcDateFrom?: string;
+  mcDateTo?: string;
   date: string;
   balanceAfter: number;
 }

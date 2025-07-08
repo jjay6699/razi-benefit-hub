@@ -6,13 +6,16 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { getEmployeeById, updateEmployee, addTransaction, getEmployeeTransactions } from '@/utils/storage';
 import { Employee, Transaction } from '@/types';
-import { ArrowLeft, User, CreditCard, History, DollarSign, Edit, Save, X } from 'lucide-react';
+import { ArrowLeft, User, CreditCard, History, DollarSign, Edit, Save, X, CalendarIcon } from 'lucide-react';
 import { TransactionHistoryTable } from '@/components/staff/TransactionHistoryTable';
 import { format } from 'date-fns';
+import { cn } from '@/lib/utils';
 
 export const EmployeeDetail = () => {
   const { employeeId } = useParams<{ employeeId: string }>();
@@ -31,6 +34,8 @@ export const EmployeeDetail = () => {
   const [description, setDescription] = useState('');
   const [diagnosis, setDiagnosis] = useState('');
   const [medicalLeave, setMedicalLeave] = useState(false);
+  const [mcDateFrom, setMcDateFrom] = useState<Date | undefined>();
+  const [mcDateTo, setMcDateTo] = useState<Date | undefined>();
   const [processing, setProcessing] = useState(false);
 
   // Admin edit balance state
@@ -218,6 +223,8 @@ export const EmployeeDetail = () => {
         description: description.trim(),
         diagnosis: diagnosis.trim() || undefined,
         medicalLeaveGranted: medicalLeave,
+        mcDateFrom: medicalLeave && mcDateFrom ? mcDateFrom.toISOString().split('T')[0] : undefined,
+        mcDateTo: medicalLeave && mcDateTo ? mcDateTo.toISOString().split('T')[0] : undefined,
         balanceAfter: newBalance,
       });
 
@@ -232,6 +239,8 @@ export const EmployeeDetail = () => {
       setDescription('');
       setDiagnosis('');
       setMedicalLeave(false);
+      setMcDateFrom(undefined);
+      setMcDateTo(undefined);
 
       toast({
         title: "Success",
@@ -493,21 +502,96 @@ export const EmployeeDetail = () => {
               />
             </div>
 
-            <div className="flex items-center space-x-3 p-3 bg-muted/30 rounded-md">
-              <Checkbox
-                id="medicalLeave"
-                checked={medicalLeave}
-                onCheckedChange={(checked) => setMedicalLeave(!!checked)}
-                disabled={processing}
-              />
-              <Label htmlFor="medicalLeave" className="text-sm font-medium cursor-pointer">
-                Medical Leave (MC) Granted
-              </Label>
+            <div className="space-y-4 p-4 bg-muted/30 rounded-md">
+              <div className="flex items-center space-x-3">
+                <Checkbox
+                  id="medicalLeave"
+                  checked={medicalLeave}
+                  onCheckedChange={(checked) => setMedicalLeave(!!checked)}
+                  disabled={processing}
+                />
+                <Label htmlFor="medicalLeave" className="text-sm font-medium cursor-pointer">
+                  Medical Leave (MC) Granted
+                </Label>
+              </div>
+              
+              {medicalLeave && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3">
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">
+                      MC Date From <span className="text-destructive">*</span>
+                    </Label>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className={cn(
+                            "w-full justify-start text-left font-normal",
+                            !mcDateFrom && "text-muted-foreground"
+                          )}
+                          disabled={processing}
+                        >
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {mcDateFrom ? format(mcDateFrom, "dd/MM/yyyy") : "Select date"}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={mcDateFrom}
+                          onSelect={setMcDateFrom}
+                          initialFocus
+                          className="p-3 pointer-events-auto"
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">
+                      MC Date To <span className="text-destructive">*</span>
+                    </Label>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className={cn(
+                            "w-full justify-start text-left font-normal",
+                            !mcDateTo && "text-muted-foreground"
+                          )}
+                          disabled={processing}
+                        >
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {mcDateTo ? format(mcDateTo, "dd/MM/yyyy") : "Select date"}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={mcDateTo}
+                          onSelect={setMcDateTo}
+                          disabled={(date) => mcDateFrom ? date < mcDateFrom : false}
+                          initialFocus
+                          className="p-3 pointer-events-auto"
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                  
+                  {mcDateFrom && mcDateTo && (
+                    <div className="col-span-full">
+                      <p className="text-sm text-muted-foreground">
+                        Duration: {Math.ceil((mcDateTo.getTime() - mcDateFrom.getTime()) / (1000 * 60 * 60 * 24)) + 1} day(s)
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
             <Button 
               onClick={handleDeduction}
-              disabled={processing || !deductionAmount || !description || employee.currentBalance <= 0}
+              disabled={processing || !deductionAmount || !description || employee.currentBalance <= 0 || (medicalLeave && (!mcDateFrom || !mcDateTo))}
               className="w-full mt-6"
               size="lg"
             >

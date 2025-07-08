@@ -2,6 +2,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Transaction } from '@/types';
+import { format } from 'date-fns';
 
 interface TransactionHistoryTableProps {
   transactions: Transaction[];
@@ -52,9 +53,17 @@ export const TransactionHistoryTable = ({ transactions, loading }: TransactionHi
               )}
               
               <div className="flex justify-between items-center pt-2">
-                <Badge variant={transaction.medicalLeaveGranted ? "default" : "secondary"} className="text-xs">
-                  {transaction.medicalLeaveGranted ? "MC Granted" : "No MC"}
-                </Badge>
+                <div className="flex flex-col gap-1">
+                  <Badge variant={transaction.medicalLeaveGranted ? "default" : "secondary"} className="text-xs w-fit">
+                    {transaction.medicalLeaveGranted ? "MC Granted" : "No MC"}
+                  </Badge>
+                  {transaction.medicalLeaveGranted && transaction.mcDateFrom && transaction.mcDateTo && (
+                    <div className="text-xs text-muted-foreground">
+                      {format(new Date(transaction.mcDateFrom), 'dd/MM/yyyy')} - {format(new Date(transaction.mcDateTo), 'dd/MM/yyyy')} 
+                      ({Math.ceil((new Date(transaction.mcDateTo).getTime() - new Date(transaction.mcDateFrom).getTime()) / (1000 * 60 * 60 * 24)) + 1} days)
+                    </div>
+                  )}
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -70,7 +79,7 @@ export const TransactionHistoryTable = ({ transactions, loading }: TransactionHi
               <TableHead>Description</TableHead>
               <TableHead>Diagnosis</TableHead>
               <TableHead>Amount</TableHead>
-              <TableHead>MC Granted</TableHead>
+              <TableHead>MC Details</TableHead>
               <TableHead>Balance After</TableHead>
             </TableRow>
           </TableHeader>
@@ -88,9 +97,18 @@ export const TransactionHistoryTable = ({ transactions, loading }: TransactionHi
                 </TableCell>
                 <TableCell className="font-medium text-sm">RM {transaction.amount.toFixed(2)}</TableCell>
                 <TableCell>
-                  <Badge variant={transaction.medicalLeaveGranted ? "default" : "secondary"} className="text-xs">
-                    {transaction.medicalLeaveGranted ? "Yes" : "No"}
-                  </Badge>
+                  <div className="space-y-1">
+                    <Badge variant={transaction.medicalLeaveGranted ? "default" : "secondary"} className="text-xs">
+                      {transaction.medicalLeaveGranted ? "MC Granted" : "No MC"}
+                    </Badge>
+                    {transaction.medicalLeaveGranted && transaction.mcDateFrom && transaction.mcDateTo && (
+                      <div className="text-xs text-muted-foreground">
+                        {format(new Date(transaction.mcDateFrom), 'dd/MM/yyyy')} - {format(new Date(transaction.mcDateTo), 'dd/MM/yyyy')}
+                        <br />
+                        ({Math.ceil((new Date(transaction.mcDateTo).getTime() - new Date(transaction.mcDateFrom).getTime()) / (1000 * 60 * 60 * 24)) + 1} days)
+                      </div>
+                    )}
+                  </div>
                 </TableCell>
                 <TableCell className="text-sm">RM {transaction.balanceAfter.toFixed(2)}</TableCell>
               </TableRow>
