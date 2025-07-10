@@ -97,7 +97,7 @@ export const Reports = () => {
 
   // Monthly transaction data (simplified)
   const monthlyData = filteredTransactions.reduce((acc, transaction) => {
-    const month = new Date(transaction.date).toLocaleDateString('en-US', { year: 'numeric', month: 'short' });
+    const month = new Date(transaction.date).toLocaleDateString('en-GB', { year: '2-digit', month: 'short' });
     if (!acc[month]) {
       acc[month] = { month, amount: 0, count: 0 };
     }

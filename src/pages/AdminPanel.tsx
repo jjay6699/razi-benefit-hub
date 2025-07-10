@@ -625,7 +625,7 @@ EMP,Name,Balance{'\n'}
                               {user.companies?.name ? ` Company: ${user.companies.name}` : ' No company assigned'}
                             </p>
                             <p className="text-xs text-muted-foreground">
-                              Created: {new Date(user.created_at).toLocaleDateString()}
+                              Created: {new Date(user.created_at).toLocaleDateString('en-GB')}
                             </p>
                           </div>
                         </div>

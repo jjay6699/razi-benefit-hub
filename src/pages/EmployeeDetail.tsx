@@ -17,7 +17,7 @@ export const EmployeeDetail = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
-  const { isAdmin } = useAuth();
+  const { isAdmin, isHRAdmin } = useAuth();
 
   const [employee, setEmployee] = useState<Employee | null>(null);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -292,13 +292,15 @@ export const EmployeeDetail = () => {
         />
       </div>
 
-      {/* Process Deduction Section */}
-      <DeductionForm
-        availableBalance={employee.currentBalance}
-        processing={false}
-        onSubmit={handleDeduction}
-        onReset={() => {}}
-      />
+      {/* Process Deduction Section - Only visible to Admins */}
+      {isAdmin && !isHRAdmin && (
+        <DeductionForm
+          availableBalance={employee.currentBalance}
+          processing={false}
+          onSubmit={handleDeduction}
+          onReset={() => {}}
+        />
+      )}
 
       {/* Transaction History */}
       <Card>

@@ -182,7 +182,7 @@ export const HRAdminDashboard = () => {
                       <div className="text-right">
                         <div className="font-medium text-destructive">-RM {transaction.amount.toFixed(2)}</div>
                         <div className="text-sm text-muted-foreground">
-                          {new Date(transaction.date).toLocaleDateString()}
+                          {new Date(transaction.date).toLocaleDateString('en-GB')}
                         </div>
                       </div>
                       <div className="flex flex-col items-end gap-1">
@@ -193,7 +193,7 @@ export const HRAdminDashboard = () => {
                         )}
                         {transaction.medicalLeaveGranted && transaction.mcDateFrom && transaction.mcDateTo && (
                           <div className="text-xs text-muted-foreground">
-                            {new Date(transaction.mcDateFrom).toLocaleDateString()} - {new Date(transaction.mcDateTo).toLocaleDateString()}
+                            {new Date(transaction.mcDateFrom).toLocaleDateString('en-GB')} - {new Date(transaction.mcDateTo).toLocaleDateString('en-GB')}
                           </div>
                         )}
                       </div>
