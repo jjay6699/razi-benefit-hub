@@ -64,9 +64,11 @@ const AppRoutes = () => {
       {/* HR Admin dashboard */}
       <Route path="/hr-admin" element={
         <ProtectedRoute hrAdminOnly>
-          <HRAdminDashboard />
+          <Layout />
         </ProtectedRoute>
-      } />
+      }>
+        <Route index element={<HRAdminDashboard />} />
+      </Route>
       
       {/* Admin dashboard and routes */}
       <Route path="/dashboard" element={
