@@ -22,15 +22,23 @@ export const getAllProfiles = async () => {
 };
 
 export const updateUserProfile = async (userId: string, updates: any) => {
-  const { data, error } = await supabase
-    .from('profiles')
-    .update(updates)
-    .eq('user_id', userId)
-    .select()
-    .single();
+  const { data, error } = await supabase.functions.invoke('manage-user', {
+    body: {
+      action: 'update_profile',
+      userId,
+      fullName: updates.full_name,
+      companyId: updates.company_id,
+      role: updates.role
+    }
+  });
   
   if (error) {
     console.error('Error updating profile:', error);
+    return null;
+  }
+  
+  if (data?.error) {
+    console.error('Profile update error:', data.error);
     return null;
   }
   

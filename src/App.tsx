@@ -68,6 +68,7 @@ const AppRoutes = () => {
         </ProtectedRoute>
       }>
         <Route index element={<HRAdminDashboard />} />
+        <Route path="employee/:employeeId" element={<EmployeeDetail />} />
       </Route>
       
       {/* Admin dashboard and routes */}

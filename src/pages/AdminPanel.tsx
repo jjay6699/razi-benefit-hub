@@ -41,10 +41,13 @@ export const AdminPanel = () => {
   const [userEditForm, setUserEditForm] = useState({
     fullName: '',
     companyId: '',
+    role: '',
+    email: '',
+    newPassword: '',
   });
   
   const { toast } = useToast();
-  const { createHRAdmin } = useAuth();
+  const { createHRAdmin, deleteUser, changeUserPassword, changeUserEmail } = useAuth();
 
   useEffect(() => {
     loadCompanies();
@@ -636,10 +639,40 @@ EMP,Name,Balance{'\n'}
                             setUserEditForm({
                               fullName: user.full_name,
                               companyId: user.company_id || '',
+                              role: user.role,
+                              email: '', // We'll fetch this separately if needed
+                              newPassword: '',
                             });
                           }}
                         >
                           Edit
+                        </Button>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={async () => {
+                            if (confirm('Are you sure you want to delete this user? This action cannot be undone.')) {
+                              try {
+                                const { error } = await deleteUser(user.user_id);
+                                if (error) throw error;
+                                
+                                toast({
+                                  title: "Success",
+                                  description: "User deleted successfully",
+                                });
+                                
+                                await loadUsers();
+                              } catch (error) {
+                                toast({
+                                  title: "Error",
+                                  description: "Failed to delete user",
+                                  variant: "destructive",
+                                });
+                              }
+                            }
+                          }}
+                        >
+                          Delete
                         </Button>
                       </div>
                     </div>
@@ -665,6 +698,42 @@ EMP,Name,Balance{'\n'}
                       placeholder="Enter full name"
                     />
                   </div>
+
+                  <div>
+                    <Label htmlFor="editEmail">Email</Label>
+                    <Input
+                      id="editEmail"
+                      type="email"
+                      value={userEditForm.email}
+                      onChange={(e) => setUserEditForm(prev => ({ ...prev, email: e.target.value }))}
+                      placeholder="Enter new email (optional)"
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="editPassword">New Password</Label>
+                    <Input
+                      id="editPassword"
+                      type="password"
+                      value={userEditForm.newPassword}
+                      onChange={(e) => setUserEditForm(prev => ({ ...prev, newPassword: e.target.value }))}
+                      placeholder="Enter new password (optional)"
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="editRole">Role</Label>
+                    <select
+                      id="editRole"
+                      className="w-full mt-1 p-2 border border-border rounded-md bg-background"
+                      value={userEditForm.role}
+                      onChange={(e) => setUserEditForm(prev => ({ ...prev, role: e.target.value }))}
+                    >
+                      <option value="patient">Patient</option>
+                      <option value="hr_admin">HR Admin</option>
+                      <option value="admin">Admin</option>
+                    </select>
+                  </div>
                   
                   <div>
                     <Label htmlFor="editCompany">Company Assignment</Label>
@@ -687,10 +756,24 @@ EMP,Name,Balance{'\n'}
                     <Button
                       onClick={async () => {
                         try {
+                          // Update profile
                           await updateUserProfile(editingUser.user_id, {
                             full_name: userEditForm.fullName,
                             company_id: userEditForm.companyId || null,
+                            role: userEditForm.role,
                           });
+
+                          // Update email if provided
+                          if (userEditForm.email && userEditForm.email !== editingUser.email) {
+                            const { error: emailError } = await changeUserEmail(editingUser.user_id, userEditForm.email);
+                            if (emailError) throw emailError;
+                          }
+
+                          // Update password if provided
+                          if (userEditForm.newPassword) {
+                            const { error: passwordError } = await changeUserPassword(editingUser.user_id, userEditForm.newPassword);
+                            if (passwordError) throw passwordError;
+                          }
                           
                           toast({
                             title: "Success",

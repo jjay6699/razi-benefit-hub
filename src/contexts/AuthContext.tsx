@@ -28,6 +28,9 @@ interface AuthContextType {
   updateProfile: (updates: Partial<Profile>) => Promise<{ error: any }>;
   refreshProfile: () => Promise<void>;
   createHRAdmin: (email: string, password: string, fullName: string, companyId: string) => Promise<{ error: any }>;
+  deleteUser: (userId: string) => Promise<{ error: any }>;
+  changeUserPassword: (userId: string, newPassword: string) => Promise<{ error: any }>;
+  changeUserEmail: (userId: string, newEmail: string) => Promise<{ error: any }>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -227,6 +230,62 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
+  const deleteUser = async (userId: string) => {
+    try {
+      const { data, error } = await supabase.functions.invoke('manage-user', {
+        body: {
+          action: 'delete',
+          userId
+        }
+      });
+
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+
+      return { error: null };
+    } catch (error) {
+      return { error };
+    }
+  };
+
+  const changeUserPassword = async (userId: string, newPassword: string) => {
+    try {
+      const { data, error } = await supabase.functions.invoke('manage-user', {
+        body: {
+          action: 'update_password',
+          userId,
+          password: newPassword
+        }
+      });
+
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+
+      return { error: null };
+    } catch (error) {
+      return { error };
+    }
+  };
+
+  const changeUserEmail = async (userId: string, newEmail: string) => {
+    try {
+      const { data, error } = await supabase.functions.invoke('manage-user', {
+        body: {
+          action: 'update_email',
+          userId,
+          email: newEmail
+        }
+      });
+
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+
+      return { error: null };
+    } catch (error) {
+      return { error };
+    }
+  };
+
   const isAdmin = profile?.role === 'admin';
   const isHRAdmin = profile?.role === 'hr_admin';
 
@@ -243,6 +302,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     updateProfile,
     refreshProfile,
     createHRAdmin,
+    deleteUser,
+    changeUserPassword,
+    changeUserEmail,
   };
 
   return (

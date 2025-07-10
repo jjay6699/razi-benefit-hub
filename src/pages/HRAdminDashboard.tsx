@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/contexts/AuthContext';
@@ -7,6 +8,7 @@ import { Employee, Transaction, Company } from '@/types';
 import { Users, Activity, DollarSign } from 'lucide-react';
 
 export const HRAdminDashboard = () => {
+  const navigate = useNavigate();
   const { profile } = useAuth();
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -119,7 +121,7 @@ export const HRAdminDashboard = () => {
                   <div
                     key={employee.id}
                     className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 cursor-pointer transition-colors"
-                    onClick={() => window.open(`/dashboard/employee/${employee.id}`, '_blank')}
+                    onClick={() => navigate(`/hr-admin/employee/${employee.id}`)}
                   >
                     <div className="flex-1">
                       <div className="flex items-center gap-3">
