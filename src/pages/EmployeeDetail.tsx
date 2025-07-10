@@ -74,7 +74,7 @@ export const EmployeeDetail = () => {
 
   const handleBack = () => {
     if (isHRAdmin) {
-      navigate('/dashboard');
+      navigate('/hr-admin');
     } else if (source === 'staff-search') {
       navigate('/dashboard/staff');
     } else if (source === 'companies') {

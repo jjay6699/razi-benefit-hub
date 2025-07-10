@@ -2,10 +2,11 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { getEmployeesByCompany, getTransactionsByCompany, getCompanyById } from '@/utils/storage';
 import { Employee, Transaction, Company } from '@/types';
-import { Users, Activity, DollarSign } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 export const HRAdminDashboard = () => {
   const navigate = useNavigate();
@@ -14,6 +15,8 @@ export const HRAdminDashboard = () => {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [company, setCompany] = useState<Company | null>(null);
   const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 20;
 
   useEffect(() => {
     if (profile?.company_id) {
@@ -53,6 +56,20 @@ export const HRAdminDashboard = () => {
   const totalBalance = employees.reduce((sum, emp) => sum + emp.currentBalance, 0);
   const totalAnnualBalance = employees.reduce((sum, emp) => sum + emp.annualBalance, 0);
   const totalSpent = transactions.reduce((sum, trans) => sum + trans.amount, 0);
+
+  // Pagination logic
+  const totalPages = Math.ceil(employees.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedEmployees = employees.slice(startIndex, endIndex);
+
+  const handlePrevPage = () => {
+    setCurrentPage(prev => Math.max(prev - 1, 1));
+  };
+
+  const handleNextPage = () => {
+    setCurrentPage(prev => Math.min(prev + 1, totalPages));
+  };
 
   return (
     <div className="space-y-6">
@@ -108,8 +125,33 @@ export const HRAdminDashboard = () => {
 
       {/* Employees List */}
       <Card>
-        <CardHeader>
-          <CardTitle className="text-base sm:text-lg">Company Employees</CardTitle>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle className="text-base sm:text-lg">
+            Company Employees ({employees.length})
+          </CardTitle>
+          {totalPages > 1 && (
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handlePrevPage}
+                disabled={currentPage === 1}
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <span className="text-sm text-muted-foreground">
+                Page {currentPage} of {totalPages}
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleNextPage}
+                disabled={currentPage === totalPages}
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          )}
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
@@ -117,7 +159,7 @@ export const HRAdminDashboard = () => {
               <p className="text-muted-foreground text-center py-8">No employees found</p>
             ) : (
               <div className="grid gap-4">
-                {employees.map((employee) => (
+                {paginatedEmployees.map((employee) => (
                   <div
                     key={employee.id}
                     className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 cursor-pointer transition-colors"
@@ -143,6 +185,31 @@ export const HRAdminDashboard = () => {
                     </div>
                   </div>
                 ))}
+              </div>
+            )}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-center gap-2 pt-4">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handlePrevPage}
+                  disabled={currentPage === 1}
+                >
+                  <ChevronLeft className="h-4 w-4 mr-1" />
+                  Previous
+                </Button>
+                <span className="text-sm text-muted-foreground px-4">
+                  Showing {startIndex + 1}-{Math.min(endIndex, employees.length)} of {employees.length} employees
+                </span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleNextPage}
+                  disabled={currentPage === totalPages}
+                >
+                  Next
+                  <ChevronRight className="h-4 w-4 ml-1" />
+                </Button>
               </div>
             )}
           </div>
