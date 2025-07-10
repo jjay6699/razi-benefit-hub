@@ -16,6 +16,7 @@ import { Companies } from "./pages/Companies";
 import { Reports } from "./pages/Reports";
 import { Auth } from "./pages/Auth";
 import { PatientDashboard } from "./pages/PatientDashboard";
+import { HRAdminDashboard } from "./pages/HRAdminDashboard";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -43,6 +44,8 @@ const AppRoutes = () => {
           </div>
         ) : profile.role === 'admin' ? (
           <Navigate to="/dashboard" replace />
+        ) : profile.role === 'hr_admin' ? (
+          <Navigate to="/hr-admin" replace />
         ) : (
           <Navigate to="/patient" replace />
         )
@@ -55,6 +58,13 @@ const AppRoutes = () => {
       <Route path="/patient" element={
         <ProtectedRoute>
           <PatientDashboard />
+        </ProtectedRoute>
+      } />
+
+      {/* HR Admin dashboard */}
+      <Route path="/hr-admin" element={
+        <ProtectedRoute hrAdminOnly>
+          <HRAdminDashboard />
         </ProtectedRoute>
       } />
       

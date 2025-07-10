@@ -6,10 +6,11 @@ import { useToast } from '@/hooks/use-toast';
 interface Profile {
   id: string;
   user_id: string;
-  role: 'admin' | 'patient';
+  role: 'admin' | 'patient' | 'hr_admin';
   full_name: string;
   ic_number?: string;
   phone_number?: string;
+  company_id?: string;
   created_at: string;
   updated_at: string;
 }
@@ -20,11 +21,13 @@ interface AuthContextType {
   profile: Profile | null;
   loading: boolean;
   isAdmin: boolean;
+  isHRAdmin: boolean;
   signUp: (email: string, password: string, fullName: string, icNumber?: string, phoneNumber?: string) => Promise<{ error: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
   updateProfile: (updates: Partial<Profile>) => Promise<{ error: any }>;
   refreshProfile: () => Promise<void>;
+  createHRAdmin: (email: string, password: string, fullName: string, companyId: string) => Promise<{ error: any }>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -197,7 +200,35 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     await fetchUserProfile(user.id);
   };
 
+  const createHRAdmin = async (email: string, password: string, fullName: string, companyId: string) => {
+    try {
+      const { data, error } = await supabase.functions.invoke('create-hr-admin', {
+        body: {
+          email,
+          password,
+          fullName,
+          companyId
+        }
+      });
+
+      if (error) {
+        console.error('Edge function error:', error);
+        return { error };
+      }
+
+      if (data?.error) {
+        return { error: new Error(data.error) };
+      }
+
+      return { error: null };
+    } catch (error) {
+      console.error('Network error:', error);
+      return { error };
+    }
+  };
+
   const isAdmin = profile?.role === 'admin';
+  const isHRAdmin = profile?.role === 'hr_admin';
 
   const value = {
     user,
@@ -205,11 +236,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     profile,
     loading,
     isAdmin,
+    isHRAdmin,
     signUp,
     signIn,
     signOut,
     updateProfile,
     refreshProfile,
+    createHRAdmin,
   };
 
   return (

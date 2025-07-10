@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { getCompanies, addEmployee, getEmployees } from '@/utils/storage';
 import { Employee, UploadResult, Company } from '@/types';
+import { useAuth } from '@/contexts/AuthContext';
 
 export const AdminPanel = () => {
   const [selectedCompany, setSelectedCompany] = useState('');
@@ -23,8 +24,18 @@ export const AdminPanel = () => {
     balance: '',
   });
   const [submittingManual, setSubmittingManual] = useState(false);
+
+  // HR Admin form state
+  const [hrAdminForm, setHrAdminForm] = useState({
+    email: '',
+    password: '',
+    fullName: '',
+    companyId: '',
+  });
+  const [submittingHRAdmin, setSubmittingHRAdmin] = useState(false);
   
   const { toast } = useToast();
+  const { createHRAdmin } = useAuth();
 
   useEffect(() => {
     loadCompanies();
@@ -241,6 +252,65 @@ export const AdminPanel = () => {
     }
   };
 
+  const handleHRAdminSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!hrAdminForm.email || !hrAdminForm.password || !hrAdminForm.fullName || !hrAdminForm.companyId) {
+      toast({
+        title: "Error",
+        description: "Please fill in all fields",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (hrAdminForm.password.length < 6) {
+      toast({
+        title: "Error",
+        description: "Password must be at least 6 characters long",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setSubmittingHRAdmin(true);
+    
+    try {
+      const { error } = await createHRAdmin(
+        hrAdminForm.email,
+        hrAdminForm.password,
+        hrAdminForm.fullName,
+        hrAdminForm.companyId
+      );
+
+      if (error) {
+        throw error;
+      }
+
+      toast({
+        title: "Success",
+        description: "HR Admin created successfully",
+      });
+      
+      // Reset form
+      setHrAdminForm({
+        email: '',
+        password: '',
+        fullName: '',
+        companyId: '',
+      });
+      
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : 'Failed to create HR Admin',
+        variant: "destructive",
+      });
+    } finally {
+      setSubmittingHRAdmin(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground rounded-lg p-6">
@@ -251,9 +321,10 @@ export const AdminPanel = () => {
       </div>
 
       <Tabs defaultValue="csv" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="csv">CSV Upload</TabsTrigger>
           <TabsTrigger value="manual">Manual Entry</TabsTrigger>
+          <TabsTrigger value="hradmin">HR Admin</TabsTrigger>
         </TabsList>
 
         <TabsContent value="csv" className="space-y-6">
@@ -413,6 +484,86 @@ EMP,Name,Balance{'\n'}
                   className="w-full"
                 >
                   {submittingManual ? "Adding Employee..." : "Add Employee"}
+                </Button>
+              </form>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="hradmin" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Create HR Admin</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleHRAdminSubmit} className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="hrEmail">Email</Label>
+                    <Input
+                      id="hrEmail"
+                      type="email"
+                      value={hrAdminForm.email}
+                      onChange={(e) => setHrAdminForm(prev => ({ ...prev, email: e.target.value }))}
+                      placeholder="admin@company.com"
+                      disabled={submittingHRAdmin}
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="hrPassword">Password</Label>
+                    <Input
+                      id="hrPassword"
+                      type="password"
+                      value={hrAdminForm.password}
+                      onChange={(e) => setHrAdminForm(prev => ({ ...prev, password: e.target.value }))}
+                      placeholder="Minimum 6 characters"
+                      disabled={submittingHRAdmin}
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="hrFullName">Full Name</Label>
+                    <Input
+                      id="hrFullName"
+                      value={hrAdminForm.fullName}
+                      onChange={(e) => setHrAdminForm(prev => ({ ...prev, fullName: e.target.value }))}
+                      placeholder="e.g., John Doe"
+                      disabled={submittingHRAdmin}
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="hrCompany">Assign Company</Label>
+                    <select
+                      id="hrCompany"
+                      className="w-full mt-1 p-2 border border-border rounded-md bg-background"
+                      value={hrAdminForm.companyId}
+                      onChange={(e) => setHrAdminForm(prev => ({ ...prev, companyId: e.target.value }))}
+                      disabled={submittingHRAdmin || loading}
+                    >
+                      <option value="">Choose a company...</option>
+                      {loading ? (
+                        <option disabled>Loading companies...</option>
+                      ) : (
+                        companies.map((company) => (
+                          <option key={company.id} value={company.id}>
+                            {company.name}
+                          </option>
+                        ))
+                      )}
+                    </select>
+                  </div>
+                </div>
+
+                <Button 
+                  type="submit" 
+                  disabled={submittingHRAdmin || loading}
+                  className="w-full"
+                >
+                  {submittingHRAdmin ? "Creating HR Admin..." : "Create HR Admin"}
                 </Button>
               </form>
             </CardContent>

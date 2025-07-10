@@ -51,7 +51,7 @@ export const Auth = () => {
     setLoading(true);
     setError('');
 
-    // Check for specific admin credentials
+    // Check for specific main admin credentials
     if (email === 'admin1214' && password === 'l<m@B*W?26F4') {
       // Use the admin email for Supabase authentication
       const { error } = await signIn('admin1214@admin.com', password);
@@ -65,12 +65,17 @@ export const Auth = () => {
       }
       // Let App.tsx handle the redirect based on user role
     } else {
-      setError('Invalid admin credentials. Only authorized administrators can access this section.');
-      toast({
-        title: "Access Denied",
-        description: "Invalid admin credentials. Only authorized administrators can access this section.",
-        variant: "destructive",
-      });
+      // Try HR Admin login with email/password
+      const { error } = await signIn(email, password);
+      if (error) {
+        setError('Invalid credentials. Please check your email and password.');
+        toast({
+          title: "Login Failed",
+          description: "Invalid credentials. Please check your email and password.",
+          variant: "destructive",
+        });
+      }
+      // Let App.tsx handle the redirect based on user role
     }
     
     setLoading(false);
@@ -264,12 +269,13 @@ export const Auth = () => {
                 <CardContent>
                   <form onSubmit={handleAdminLogin} className="space-y-4">
                     <div>
-                      <Label htmlFor="admin-email">Username</Label>
+                      <Label htmlFor="admin-email">Username/Email</Label>
                       <Input
                         id="admin-email"
                         type="text"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
+                        placeholder="admin1214 or HR admin email"
                         required
                         disabled={loading}
                       />

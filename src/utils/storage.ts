@@ -275,6 +275,82 @@ export const addTransaction = async (transaction: Omit<Transaction, 'id' | 'date
   };
 };
 
+// HR Admin specific functions
+export const getEmployeesByCompany = async (companyId: string): Promise<Employee[]> => {
+  const { data, error } = await supabase
+    .from('employees')
+    .select('*')
+    .eq('company_id', companyId)
+    .order('created_at', { ascending: true });
+  
+  if (error) {
+    console.error('Error fetching employees by company:', error);
+    return [];
+  }
+  
+  return data?.map(employee => ({
+    id: employee.id,
+    empId: employee.emp_id,
+    name: employee.name,
+    companyId: employee.company_id,
+    companyName: employee.company_name,
+    annualBalance: Number(employee.annual_balance),
+    currentBalance: Number(employee.current_balance),
+    createdAt: employee.created_at,
+  })) || [];
+};
+
+export const getTransactionsByCompany = async (companyId: string): Promise<Transaction[]> => {
+  const { data, error } = await supabase
+    .from('transactions')
+    .select(`
+      *,
+      employees!inner(company_id)
+    `)
+    .eq('employees.company_id', companyId)
+    .order('date', { ascending: false });
+  
+  if (error) {
+    console.error('Error fetching transactions by company:', error);
+    return [];
+  }
+  
+  return data?.map(transaction => ({
+    id: transaction.id,
+    employeeId: transaction.employee_id,
+    employeeName: transaction.employee_name,
+    employeeEmpId: transaction.employee_emp_id,
+    companyName: transaction.company_name,
+    amount: Number(transaction.amount),
+    description: transaction.description,
+    diagnosis: transaction.diagnosis,
+    medicalLeaveGranted: transaction.medical_leave_granted || false,
+    mcDateFrom: transaction.mc_date_from,
+    mcDateTo: transaction.mc_date_to,
+    date: transaction.date,
+    balanceAfter: Number(transaction.balance_after),
+  })) || [];
+};
+
+export const getCompanyById = async (companyId: string): Promise<Company | null> => {
+  const { data, error } = await supabase
+    .from('companies')
+    .select('*')
+    .eq('id', companyId)
+    .single();
+  
+  if (error) {
+    console.error('Error fetching company by ID:', error);
+    return null;
+  }
+  
+  return {
+    id: data.id,
+    name: data.name,
+    createdAt: data.created_at,
+  };
+};
+
 export const getEmployeeTransactions = async (employeeId: string): Promise<Transaction[]> => {
   const { data, error } = await supabase
     .from('transactions')
