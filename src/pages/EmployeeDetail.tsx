@@ -73,7 +73,9 @@ export const EmployeeDetail = () => {
   };
 
   const handleBack = () => {
-    if (source === 'staff-search') {
+    if (isHRAdmin) {
+      navigate('/dashboard');
+    } else if (source === 'staff-search') {
       navigate('/dashboard/staff');
     } else if (source === 'companies') {
       navigate('/dashboard/companies');
@@ -243,6 +245,7 @@ export const EmployeeDetail = () => {
   }
 
   const getBackButtonText = () => {
+    if (isHRAdmin) return 'Dashboard';
     if (source === 'staff-search') return 'Staff Search';
     if (source === 'companies') return 'Companies';
     return 'Staff List';
