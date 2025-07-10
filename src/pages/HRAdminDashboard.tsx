@@ -4,7 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/contexts/AuthContext';
 import { getEmployeesByCompany, getTransactionsByCompany, getCompanyById } from '@/utils/storage';
 import { Employee, Transaction, Company } from '@/types';
-import { Building2, Users, Activity, DollarSign } from 'lucide-react';
+import { Users, Activity, DollarSign } from 'lucide-react';
 
 export const HRAdminDashboard = () => {
   const { profile } = useAuth();
@@ -54,55 +54,52 @@ export const HRAdminDashboard = () => {
 
   return (
     <div className="space-y-6">
-      <div className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground rounded-lg p-6">
-        <div className="flex items-center gap-3 mb-2">
-          <Building2 className="h-8 w-8" />
-          <h1 className="text-3xl font-bold">{company?.name || 'Company Dashboard'}</h1>
-        </div>
-        <p className="text-primary-foreground/90">
+      <div className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground rounded-lg p-4 sm:p-6">
+        <h1 className="text-2xl sm:text-3xl font-bold mb-1 sm:mb-2">{company?.name || 'Company Dashboard'}</h1>
+        <p className="text-primary-foreground/90 text-sm sm:text-base">
           HR Admin Dashboard - View only access to company data
         </p>
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Employees</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-xs sm:text-sm font-medium">Total Employees</CardTitle>
+            <span className="text-xl sm:text-2xl">👥</span>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{employees.length}</div>
+            <div className="text-xl sm:text-2xl font-bold">{employees.length}</div>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Current Balance</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-xs sm:text-sm font-medium">Current Balance</CardTitle>
+            <span className="text-xl sm:text-2xl">💳</span>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">RM {totalBalance.toFixed(2)}</div>
+            <div className="text-xl sm:text-2xl font-bold">RM {totalBalance.toFixed(2)}</div>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Annual Balance</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-xs sm:text-sm font-medium">Annual Balance</CardTitle>
+            <span className="text-xl sm:text-2xl">💰</span>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">RM {totalAnnualBalance.toFixed(2)}</div>
+            <div className="text-xl sm:text-2xl font-bold">RM {totalAnnualBalance.toFixed(2)}</div>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Spent</CardTitle>
-            <Activity className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-xs sm:text-sm font-medium">Total Spent</CardTitle>
+            <span className="text-xl sm:text-2xl">📈</span>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">RM {totalSpent.toFixed(2)}</div>
+            <div className="text-xl sm:text-2xl font-bold">RM {totalSpent.toFixed(2)}</div>
           </CardContent>
         </Card>
       </div>
@@ -110,7 +107,7 @@ export const HRAdminDashboard = () => {
       {/* Employees List */}
       <Card>
         <CardHeader>
-          <CardTitle>Company Employees</CardTitle>
+          <CardTitle className="text-base sm:text-lg">Company Employees</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
@@ -152,7 +149,7 @@ export const HRAdminDashboard = () => {
       {/* Recent Transactions */}
       <Card>
         <CardHeader>
-          <CardTitle>Recent Transactions</CardTitle>
+          <CardTitle className="text-base sm:text-lg">Recent Transactions</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
