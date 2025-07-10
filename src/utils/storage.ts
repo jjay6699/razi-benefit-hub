@@ -1,6 +1,42 @@
 import { Company, Employee, Transaction } from '@/types';
 import { supabase } from '@/integrations/supabase/client';
 
+// Profile Storage
+export const getAllProfiles = async () => {
+  const { data, error } = await supabase
+    .from('profiles')
+    .select(`
+      *,
+      companies:company_id (
+        name
+      )
+    `)
+    .order('created_at', { ascending: true });
+  
+  if (error) {
+    console.error('Error fetching profiles:', error);
+    return [];
+  }
+  
+  return data || [];
+};
+
+export const updateUserProfile = async (userId: string, updates: any) => {
+  const { data, error } = await supabase
+    .from('profiles')
+    .update(updates)
+    .eq('user_id', userId)
+    .select()
+    .single();
+  
+  if (error) {
+    console.error('Error updating profile:', error);
+    return null;
+  }
+  
+  return data;
+};
+
 // Company Storage
 export const getCompanies = async (): Promise<Company[]> => {
   const { data, error } = await supabase

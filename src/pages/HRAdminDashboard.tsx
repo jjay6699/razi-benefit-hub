@@ -118,7 +118,8 @@ export const HRAdminDashboard = () => {
                 {employees.map((employee) => (
                   <div
                     key={employee.id}
-                    className="flex items-center justify-between p-4 border rounded-lg"
+                    className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 cursor-pointer transition-colors"
+                    onClick={() => window.open(`/dashboard/employee/${employee.id}`, '_blank')}
                   >
                     <div className="flex-1">
                       <div className="flex items-center gap-3">
@@ -182,11 +183,18 @@ export const HRAdminDashboard = () => {
                           {new Date(transaction.date).toLocaleDateString()}
                         </div>
                       </div>
-                      {transaction.medicalLeaveGranted && (
-                        <Badge variant="secondary">
-                          MC Granted
-                        </Badge>
-                      )}
+                      <div className="flex flex-col items-end gap-1">
+                        {transaction.medicalLeaveGranted && (
+                          <Badge variant="secondary">
+                            MC Granted
+                          </Badge>
+                        )}
+                        {transaction.medicalLeaveGranted && transaction.mcDateFrom && transaction.mcDateTo && (
+                          <div className="text-xs text-muted-foreground">
+                            {new Date(transaction.mcDateFrom).toLocaleDateString()} - {new Date(transaction.mcDateTo).toLocaleDateString()}
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
                 ))}

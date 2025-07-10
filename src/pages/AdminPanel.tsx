@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
-import { getCompanies, addEmployee, getEmployees } from '@/utils/storage';
+import { getCompanies, addEmployee, getEmployees, getAllProfiles, updateUserProfile } from '@/utils/storage';
 import { Employee, UploadResult, Company } from '@/types';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -33,12 +33,22 @@ export const AdminPanel = () => {
     companyId: '',
   });
   const [submittingHRAdmin, setSubmittingHRAdmin] = useState(false);
+
+  // User management state
+  const [users, setUsers] = useState<any[]>([]);
+  const [loadingUsers, setLoadingUsers] = useState(false);
+  const [editingUser, setEditingUser] = useState<any>(null);
+  const [userEditForm, setUserEditForm] = useState({
+    fullName: '',
+    companyId: '',
+  });
   
   const { toast } = useToast();
   const { createHRAdmin } = useAuth();
 
   useEffect(() => {
     loadCompanies();
+    loadUsers();
   }, []);
 
   const loadCompanies = async () => {
@@ -46,6 +56,18 @@ export const AdminPanel = () => {
     const companiesData = await getCompanies();
     setCompanies(companiesData);
     setLoading(false);
+  };
+
+  const loadUsers = async () => {
+    setLoadingUsers(true);
+    try {
+      const profiles = await getAllProfiles();
+      setUsers(profiles);
+    } catch (error) {
+      console.error('Error loading users:', error);
+    } finally {
+      setLoadingUsers(false);
+    }
   };
 
   // Proper CSV parsing function that handles quoted fields and commas within values
@@ -321,10 +343,11 @@ export const AdminPanel = () => {
       </div>
 
       <Tabs defaultValue="csv" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="csv">CSV Upload</TabsTrigger>
           <TabsTrigger value="manual">Manual Entry</TabsTrigger>
           <TabsTrigger value="hradmin">HR Admin</TabsTrigger>
+          <TabsTrigger value="users">User Management</TabsTrigger>
         </TabsList>
 
         <TabsContent value="csv" className="space-y-6">
@@ -568,6 +591,136 @@ EMP,Name,Balance{'\n'}
               </form>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="users" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base sm:text-lg">User Management</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {loadingUsers ? (
+                <div className="text-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+                  <p className="mt-2 text-sm text-muted-foreground">Loading users...</p>
+                </div>
+              ) : users.length === 0 ? (
+                <p className="text-muted-foreground text-center py-8">No users found</p>
+              ) : (
+                <div className="space-y-4">
+                  {users.map((user) => (
+                    <div
+                      key={user.id}
+                      className="flex items-center justify-between p-4 border rounded-lg"
+                    >
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3">
+                          <div>
+                            <h3 className="font-medium">{user.full_name}</h3>
+                            <p className="text-sm text-muted-foreground">
+                              Role: {user.role} | 
+                              {user.companies?.name ? ` Company: ${user.companies.name}` : ' No company assigned'}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              Created: {new Date(user.created_at).toLocaleDateString()}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setEditingUser(user);
+                            setUserEditForm({
+                              fullName: user.full_name,
+                              companyId: user.company_id || '',
+                            });
+                          }}
+                        >
+                          Edit
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {editingUser && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base sm:text-lg">Edit User: {editingUser.full_name}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="editFullName">Full Name</Label>
+                    <Input
+                      id="editFullName"
+                      value={userEditForm.fullName}
+                      onChange={(e) => setUserEditForm(prev => ({ ...prev, fullName: e.target.value }))}
+                      placeholder="Enter full name"
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="editCompany">Company Assignment</Label>
+                    <select
+                      id="editCompany"
+                      className="w-full mt-1 p-2 border border-border rounded-md bg-background"
+                      value={userEditForm.companyId}
+                      onChange={(e) => setUserEditForm(prev => ({ ...prev, companyId: e.target.value }))}
+                    >
+                      <option value="">No company assigned</option>
+                      {companies.map((company) => (
+                        <option key={company.id} value={company.id}>
+                          {company.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={async () => {
+                        try {
+                          await updateUserProfile(editingUser.user_id, {
+                            full_name: userEditForm.fullName,
+                            company_id: userEditForm.companyId || null,
+                          });
+                          
+                          toast({
+                            title: "Success",
+                            description: "User updated successfully",
+                          });
+                          
+                          setEditingUser(null);
+                          await loadUsers();
+                        } catch (error) {
+                          toast({
+                            title: "Error",
+                            description: "Failed to update user",
+                            variant: "destructive",
+                          });
+                        }
+                      }}
+                    >
+                      Save Changes
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={() => setEditingUser(null)}
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </TabsContent>
       </Tabs>
 
