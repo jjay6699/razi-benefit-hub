@@ -21,7 +21,8 @@ export const AdminPanel = () => {
     empId: '',
     name: '',
     companyId: '',
-    balance: '',
+    annualBalance: '',
+    currentBalance: '',
   });
   const [submittingManual, setSubmittingManual] = useState(false);
 
@@ -134,10 +135,11 @@ export const AdminPanel = () => {
       
       const empIdIndex = headers.findIndex(h => h.includes('emp'));
       const nameIndex = headers.findIndex(h => h.includes('name'));
-      const balanceIndex = headers.findIndex(h => h.includes('balance') || h.includes('amount'));
+      const annualBalanceIndex = headers.findIndex(h => h.includes('annual') && h.includes('balance'));
+      const currentBalanceIndex = headers.findIndex(h => h.includes('current') && h.includes('balance'));
 
-      if (empIdIndex === -1 || nameIndex === -1 || balanceIndex === -1) {
-        throw new Error('CSV must contain EMP, Name, and Balance columns');
+      if (empIdIndex === -1 || nameIndex === -1 || annualBalanceIndex === -1 || currentBalanceIndex === -1) {
+        throw new Error('CSV must contain EMP, Name, Annual Balance, and Current Balance columns');
       }
 
       const existingEmployees = await getEmployees();
@@ -147,18 +149,20 @@ export const AdminPanel = () => {
         const columns = parseCSVLine(lines[i]);
         
         // Ensure we have enough columns
-        if (columns.length < Math.max(empIdIndex, nameIndex, balanceIndex) + 1) {
+        if (columns.length < Math.max(empIdIndex, nameIndex, annualBalanceIndex, currentBalanceIndex) + 1) {
           result.errors.push(`Line ${i + 1}: Insufficient columns`);
           continue;
         }
 
         const empId = columns[empIdIndex]?.trim();
         const name = columns[nameIndex]?.trim();
-        const balanceStr = columns[balanceIndex]?.trim();
-        const balance = parseFloat(balanceStr || '0');
+        const annualBalanceStr = columns[annualBalanceIndex]?.trim();
+        const currentBalanceStr = columns[currentBalanceIndex]?.trim();
+        const annualBalance = parseFloat(annualBalanceStr || '0');
+        const currentBalance = parseFloat(currentBalanceStr || '0');
 
-        if (!empId || !name || !balanceStr || isNaN(balance)) {
-          result.errors.push(`Line ${i + 1}: Missing or invalid data - EMP: "${empId}", Name: "${name}", Balance: "${balanceStr}"`);
+        if (!empId || !name || !annualBalanceStr || !currentBalanceStr || isNaN(annualBalance) || isNaN(currentBalance)) {
+          result.errors.push(`Line ${i + 1}: Missing or invalid data - EMP: "${empId}", Name: "${name}", Annual Balance: "${annualBalanceStr}", Current Balance: "${currentBalanceStr}"`);
           continue;
         }
 
@@ -175,8 +179,8 @@ export const AdminPanel = () => {
           name,
           companyId: selectedCompany,
           companyName: company?.name || 'Unknown',
-          annualBalance: balance,
-          currentBalance: balance,
+          annualBalance,
+          currentBalance,
         });
 
         result.success++;
@@ -203,7 +207,7 @@ export const AdminPanel = () => {
   const handleManualSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!manualEmployee.empId || !manualEmployee.name || !manualEmployee.companyId || !manualEmployee.balance) {
+    if (!manualEmployee.empId || !manualEmployee.name || !manualEmployee.companyId || !manualEmployee.annualBalance || !manualEmployee.currentBalance) {
       toast({
         title: "Error",
         description: "Please fill in all fields",
@@ -212,11 +216,12 @@ export const AdminPanel = () => {
       return;
     }
 
-    const balance = parseFloat(manualEmployee.balance);
-    if (isNaN(balance) || balance < 0) {
+    const annualBalance = parseFloat(manualEmployee.annualBalance);
+    const currentBalance = parseFloat(manualEmployee.currentBalance);
+    if (isNaN(annualBalance) || annualBalance < 0 || isNaN(currentBalance) || currentBalance < 0) {
       toast({
         title: "Error",
-        description: "Please enter a valid balance amount",
+        description: "Please enter valid balance amounts",
         variant: "destructive",
       });
       return;
@@ -245,8 +250,8 @@ export const AdminPanel = () => {
         name: manualEmployee.name,
         companyId: manualEmployee.companyId,
         companyName: company?.name || 'Unknown',
-        annualBalance: balance,
-        currentBalance: balance,
+        annualBalance,
+        currentBalance,
       });
 
       if (result) {
@@ -260,7 +265,8 @@ export const AdminPanel = () => {
           empId: '',
           name: '',
           companyId: '',
-          balance: '',
+          annualBalance: '',
+          currentBalance: '',
         });
       } else {
         throw new Error('Failed to add employee');
@@ -392,7 +398,7 @@ export const AdminPanel = () => {
                 className="mt-1"
               />
               <p className="text-sm text-muted-foreground mt-1">
-                CSV should contain: EMP, Name, Balance columns
+                CSV should contain: EMP, Name, Annual Balance, Current Balance columns
               </p>
             </div>
 
@@ -416,17 +422,18 @@ export const AdminPanel = () => {
                 <ul className="text-sm space-y-1 text-muted-foreground">
                   <li>• <strong>EMP</strong> - Employee ID</li>
                   <li>• <strong>Name</strong> - Full Name</li>
-                  <li>• <strong>Balance</strong> - Annual Balance (RM)</li>
+                  <li>• <strong>Annual Balance</strong> - Annual Balance (RM)</li>
+                  <li>• <strong>Current Balance</strong> - Current Balance (RM)</li>
                 </ul>
               </div>
               
               <div className="bg-muted p-3 rounded-md">
                 <p className="text-sm font-medium mb-2">Example CSV:</p>
                 <pre className="text-xs">
-EMP,Name,Balance{'\n'}
-001,John Doe,1000{'\n'}
-002,Jane Smith,1500{'\n'}
-003,Ahmad Ali,2000
+EMP,Name,Annual Balance,Current Balance{'\n'}
+001,John Doe,1000,850{'\n'}
+002,Jane Smith,1500,1200{'\n'}
+003,Ahmad Ali,2000,1800
                 </pre>
               </div>
             </div>
@@ -466,39 +473,53 @@ EMP,Name,Balance{'\n'}
                   </div>
                 </div>
 
+                <div>
+                  <Label htmlFor="manualCompany">Company</Label>
+                  <select
+                    id="manualCompany"
+                    className="w-full mt-1 p-2 border border-border rounded-md bg-background"
+                    value={manualEmployee.companyId}
+                    onChange={(e) => setManualEmployee(prev => ({ ...prev, companyId: e.target.value }))}
+                    disabled={submittingManual || loading}
+                  >
+                    <option value="">Choose a company...</option>
+                    {loading ? (
+                      <option disabled>Loading companies...</option>
+                    ) : (
+                      companies.map((company) => (
+                        <option key={company.id} value={company.id}>
+                          {company.name}
+                        </option>
+                      ))
+                    )}
+                  </select>
+                </div>
+                
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="manualCompany">Company</Label>
-                    <select
-                      id="manualCompany"
-                      className="w-full mt-1 p-2 border border-border rounded-md bg-background"
-                      value={manualEmployee.companyId}
-                      onChange={(e) => setManualEmployee(prev => ({ ...prev, companyId: e.target.value }))}
-                      disabled={submittingManual || loading}
-                    >
-                      <option value="">Choose a company...</option>
-                      {loading ? (
-                        <option disabled>Loading companies...</option>
-                      ) : (
-                        companies.map((company) => (
-                          <option key={company.id} value={company.id}>
-                            {company.name}
-                          </option>
-                        ))
-                      )}
-                    </select>
-                  </div>
-                  
-                  <div>
-                    <Label htmlFor="balance">Annual Balance (RM)</Label>
+                    <Label htmlFor="annualBalance">Annual Balance (RM)</Label>
                     <Input
-                      id="balance"
+                      id="annualBalance"
                       type="number"
                       step="0.01"
                       min="0"
-                      value={manualEmployee.balance}
-                      onChange={(e) => setManualEmployee(prev => ({ ...prev, balance: e.target.value }))}
+                      value={manualEmployee.annualBalance}
+                      onChange={(e) => setManualEmployee(prev => ({ ...prev, annualBalance: e.target.value }))}
                       placeholder="e.g., 1000.00"
+                      disabled={submittingManual}
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="currentBalance">Current Balance (RM)</Label>
+                    <Input
+                      id="currentBalance"
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      value={manualEmployee.currentBalance}
+                      onChange={(e) => setManualEmployee(prev => ({ ...prev, currentBalance: e.target.value }))}
+                      placeholder="e.g., 850.00"
                       disabled={submittingManual}
                     />
                   </div>
