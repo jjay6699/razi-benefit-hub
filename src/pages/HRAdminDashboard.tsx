@@ -26,6 +26,11 @@ export const HRAdminDashboard = () => {
     }
   }, [profile]);
 
+  // Reset pagination when search term changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
+
   const loadDashboardData = async () => {
     if (!profile?.company_id) return;
 
@@ -70,11 +75,6 @@ export const HRAdminDashboard = () => {
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const paginatedEmployees = filteredEmployees.slice(startIndex, endIndex);
-
-  // Reset pagination when search term changes
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [searchTerm]);
 
   const handlePrevPage = () => {
     setCurrentPage(prev => Math.max(prev - 1, 1));
