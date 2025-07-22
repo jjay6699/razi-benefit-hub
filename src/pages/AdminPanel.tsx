@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
-import { getCompanies, addEmployee, getEmployees, getAllProfiles, updateUserProfile } from '@/utils/storage';
+import { getCompanies, addEmployee, getEmployees, getAllProfiles, updateUserProfile, updateEmployee } from '@/utils/storage';
 import { Employee, UploadResult, Company } from '@/types';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -46,6 +46,15 @@ export const AdminPanel = () => {
     email: '',
     newPassword: '',
   });
+
+  // Employee management state
+  const [employees, setEmployees] = useState<Employee[]>([]);
+  const [loadingEmployees, setLoadingEmployees] = useState(false);
+  const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
+  const [employeeEditForm, setEmployeeEditForm] = useState({
+    name: '',
+    empId: '',
+  });
   
   const { toast } = useToast();
   const { createHRAdmin, deleteUser, changeUserPassword, changeUserEmail } = useAuth();
@@ -53,6 +62,7 @@ export const AdminPanel = () => {
   useEffect(() => {
     loadCompanies();
     loadUsers();
+    loadEmployees();
   }, []);
 
   const loadCompanies = async () => {
@@ -71,6 +81,18 @@ export const AdminPanel = () => {
       console.error('Error loading users:', error);
     } finally {
       setLoadingUsers(false);
+    }
+  };
+
+  const loadEmployees = async () => {
+    setLoadingEmployees(true);
+    try {
+      const employeesData = await getEmployees();
+      setEmployees(employeesData);
+    } catch (error) {
+      console.error('Error loading employees:', error);
+    } finally {
+      setLoadingEmployees(false);
     }
   };
 
@@ -352,10 +374,11 @@ export const AdminPanel = () => {
       </div>
 
       <Tabs defaultValue="csv" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="csv">CSV Upload</TabsTrigger>
           <TabsTrigger value="manual">Manual Entry</TabsTrigger>
           <TabsTrigger value="hradmin">HR Admin</TabsTrigger>
+          <TabsTrigger value="employees">Employee Edit</TabsTrigger>
           <TabsTrigger value="users">User Management</TabsTrigger>
         </TabsList>
 
@@ -817,6 +840,147 @@ EMP,Name,Annual Balance,Current Balance{'\n'}
                     <Button
                       variant="outline"
                       onClick={() => setEditingUser(null)}
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
+
+        <TabsContent value="employees" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base sm:text-lg">Employee Management</CardTitle>
+              <p className="text-sm text-muted-foreground">Edit employee names and IDs (Admin only)</p>
+            </CardHeader>
+            <CardContent>
+              {loadingEmployees ? (
+                <div className="text-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+                  <p className="mt-2 text-sm text-muted-foreground">Loading employees...</p>
+                </div>
+              ) : employees.length === 0 ? (
+                <p className="text-muted-foreground text-center py-8">No employees found</p>
+              ) : (
+                <div className="space-y-4">
+                  {employees.map((employee) => (
+                    <div
+                      key={employee.id}
+                      className="flex items-center justify-between p-4 border rounded-lg"
+                    >
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3">
+                          <div>
+                            <h3 className="font-medium">{employee.name}</h3>
+                            <p className="text-sm text-muted-foreground">
+                              Employee ID: {employee.empId} | Company: {employee.companyName}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              Annual: RM{employee.annualBalance.toFixed(2)} | Current: RM{employee.currentBalance.toFixed(2)}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setEditingEmployee(employee);
+                            setEmployeeEditForm({
+                              name: employee.name,
+                              empId: employee.empId,
+                            });
+                          }}
+                        >
+                          Edit
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {editingEmployee && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base sm:text-lg">Edit Employee: {editingEmployee.name}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="editEmployeeName">Employee Name</Label>
+                    <Input
+                      id="editEmployeeName"
+                      value={employeeEditForm.name}
+                      onChange={(e) => setEmployeeEditForm(prev => ({ ...prev, name: e.target.value }))}
+                      placeholder="Enter employee name"
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="editEmployeeId">Employee ID</Label>
+                    <Input
+                      id="editEmployeeId"
+                      value={employeeEditForm.empId}
+                      onChange={(e) => setEmployeeEditForm(prev => ({ ...prev, empId: e.target.value }))}
+                      placeholder="Enter employee ID"
+                    />
+                  </div>
+
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={async () => {
+                        try {
+                          // Check for duplicate employee IDs if the ID is being changed
+                          if (employeeEditForm.empId !== editingEmployee.empId) {
+                            const existingEmp = employees.find(e => e.empId === employeeEditForm.empId && e.id !== editingEmployee.id);
+                            if (existingEmp) {
+                              toast({
+                                title: "Error",
+                                description: `Employee ID ${employeeEditForm.empId} already exists`,
+                                variant: "destructive",
+                              });
+                              return;
+                            }
+                          }
+
+                          // Update employee
+                          const result = await updateEmployee(editingEmployee.id, {
+                            name: employeeEditForm.name,
+                            empId: employeeEditForm.empId,
+                          });
+
+                          if (result) {
+                            toast({
+                              title: "Success",
+                              description: "Employee updated successfully",
+                            });
+                            
+                            setEditingEmployee(null);
+                            await loadEmployees();
+                          } else {
+                            throw new Error('Failed to update employee');
+                          }
+                        } catch (error) {
+                          toast({
+                            title: "Error",
+                            description: error instanceof Error ? error.message : "Failed to update employee",
+                            variant: "destructive",
+                          });
+                        }
+                      }}
+                    >
+                      Save Changes
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={() => setEditingEmployee(null)}
                     >
                       Cancel
                     </Button>
