@@ -31,6 +31,13 @@ export const EmployeeDetail = () => {
   const [newCurrentBalance, setNewCurrentBalance] = useState('');
   const [updatingBalance, setUpdatingBalance] = useState(false);
 
+  // Admin edit name and ID state
+  const [editingEmployeeName, setEditingEmployeeName] = useState(false);
+  const [editingEmployeeId, setEditingEmployeeId] = useState(false);
+  const [newEmployeeName, setNewEmployeeName] = useState('');
+  const [newEmployeeId, setNewEmployeeId] = useState('');
+  const [updatingEmployee, setUpdatingEmployee] = useState(false);
+
   // Get the source from location state for proper back navigation
   const source = location.state?.source || 'staff-list';
 
@@ -158,6 +165,98 @@ export const EmployeeDetail = () => {
     }
   };
 
+  const handleUpdateEmployee = async (updateType: 'name' | 'empId') => {
+    if (!employee) return;
+
+    const newValue = updateType === 'name' ? newEmployeeName.trim() : newEmployeeId.trim();
+    
+    if (!newValue) {
+      toast({
+        title: "Error",
+        description: `Please enter a valid ${updateType === 'name' ? 'name' : 'employee ID'}`,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Check for duplicate employee ID if updating employee ID
+    if (updateType === 'empId' && newValue !== employee.empId) {
+      try {
+        const { getEmployees } = await import('@/utils/storage');
+        const allEmployees = await getEmployees();
+        const existingEmp = allEmployees.find(e => e.empId === newValue && e.id !== employee.id);
+        if (existingEmp) {
+          toast({
+            title: "Error",
+            description: `Employee ID ${newValue} already exists`,
+            variant: "destructive",
+          });
+          return;
+        }
+      } catch (error) {
+        console.error('Error checking for duplicate employee ID:', error);
+      }
+    }
+
+    setUpdatingEmployee(true);
+
+    try {
+      const updateData = updateType === 'name' 
+        ? { name: newValue }
+        : { empId: newValue };
+
+      const updatedEmployee = await updateEmployee(employee.id, updateData);
+
+      if (!updatedEmployee) {
+        throw new Error(`Failed to update employee ${updateType === 'name' ? 'name' : 'ID'}`);
+      }
+
+      setEmployee(updatedEmployee);
+      
+      if (updateType === 'name') {
+        setEditingEmployeeName(false);
+        setNewEmployeeName('');
+      } else {
+        setEditingEmployeeId(false);
+        setNewEmployeeId('');
+      }
+
+      toast({
+        title: "Success",
+        description: `Employee ${updateType === 'name' ? 'name' : 'ID'} updated successfully`,
+      });
+
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : `Failed to update ${updateType === 'name' ? 'name' : 'ID'}`,
+        variant: "destructive",
+      });
+    } finally {
+      setUpdatingEmployee(false);
+    }
+  };
+
+  const startEditingEmployee = (updateType: 'name' | 'empId') => {
+    if (updateType === 'name') {
+      setEditingEmployeeName(true);
+      setNewEmployeeName(employee?.name || '');
+    } else {
+      setEditingEmployeeId(true);
+      setNewEmployeeId(employee?.empId || '');
+    }
+  };
+
+  const cancelEditingEmployee = (updateType: 'name' | 'empId') => {
+    if (updateType === 'name') {
+      setEditingEmployeeName(false);
+      setNewEmployeeName('');
+    } else {
+      setEditingEmployeeId(false);
+      setNewEmployeeId('');
+    }
+  };
+
   const handleDeduction = async (formData: any) => {
     if (!employee || !formData.amount || !formData.description.trim()) {
       toast({
@@ -258,6 +357,14 @@ export const EmployeeDetail = () => {
         employeeId={employee.empId}
         onBack={handleBack}
         backButtonText={getBackButtonText()}
+        isAdmin={isAdmin}
+        isEditingName={editingEmployeeName}
+        editNameValue={newEmployeeName}
+        isUpdating={updatingEmployee}
+        onStartEditName={() => startEditingEmployee('name')}
+        onCancelEditName={() => cancelEditingEmployee('name')}
+        onSaveName={() => handleUpdateEmployee('name')}
+        onNameValueChange={setNewEmployeeName}
       />
 
       <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
@@ -265,6 +372,14 @@ export const EmployeeDetail = () => {
           companyName={employee.companyName}
           employeeId={employee.empId}
           joinedDate={employee.createdAt}
+          isAdmin={isAdmin}
+          isEditingId={editingEmployeeId}
+          editIdValue={newEmployeeId}
+          isUpdating={updatingEmployee}
+          onStartEditId={() => startEditingEmployee('empId')}
+          onCancelEditId={() => cancelEditingEmployee('empId')}
+          onSaveId={() => handleUpdateEmployee('empId')}
+          onIdValueChange={setNewEmployeeId}
         />
 
         <BalanceCard
