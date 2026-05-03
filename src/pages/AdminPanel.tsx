@@ -135,13 +135,12 @@ export const AdminPanel = () => {
 
       const headers = parseCSVLine(lines[0]).map(h => h.toLowerCase().trim());
       
-      const empIdIndex = headers.findIndex(h => h.includes('emp'));
+      const empIdIndex = headers.findIndex(h => h.includes('no') || h.includes('emp'));
       const nameIndex = headers.findIndex(h => h.includes('name'));
-      const annualBalanceIndex = headers.findIndex(h => h.includes('annual') && h.includes('balance'));
-      const currentBalanceIndex = headers.findIndex(h => h.includes('current') && h.includes('balance'));
+      const balanceIndex = headers.findIndex(h => h.includes('balance') && !h.includes('annual') && !h.includes('current'));
 
-      if (empIdIndex === -1 || nameIndex === -1 || annualBalanceIndex === -1 || currentBalanceIndex === -1) {
-        throw new Error('CSV must contain EMP, Name, Annual Balance, and Current Balance columns');
+      if (empIdIndex === -1 || nameIndex === -1 || balanceIndex === -1) {
+        throw new Error('CSV must contain NO, NAME, and Balance columns');
       }
 
       const existingEmployees = await getEmployees();
@@ -149,22 +148,20 @@ export const AdminPanel = () => {
       
       for (let i = 1; i < lines.length; i++) {
         const columns = parseCSVLine(lines[i]);
-        
+
         // Ensure we have enough columns
-        if (columns.length < Math.max(empIdIndex, nameIndex, annualBalanceIndex, currentBalanceIndex) + 1) {
+        if (columns.length < Math.max(empIdIndex, nameIndex, balanceIndex) + 1) {
           result.errors.push(`Line ${i + 1}: Insufficient columns`);
           continue;
         }
 
         const empId = columns[empIdIndex]?.trim();
         const name = columns[nameIndex]?.trim();
-        const annualBalanceStr = columns[annualBalanceIndex]?.trim();
-        const currentBalanceStr = columns[currentBalanceIndex]?.trim();
-        const annualBalance = parseFloat(annualBalanceStr || '0');
-        const currentBalance = parseFloat(currentBalanceStr || '0');
+        const balanceStr = columns[balanceIndex]?.trim();
+        const balance = parseFloat(balanceStr || '0');
 
-        if (!empId || !name || !annualBalanceStr || !currentBalanceStr || isNaN(annualBalance) || isNaN(currentBalance)) {
-          result.errors.push(`Line ${i + 1}: Missing or invalid data - EMP: "${empId}", Name: "${name}", Annual Balance: "${annualBalanceStr}", Current Balance: "${currentBalanceStr}"`);
+        if (!empId || !name || isNaN(balance)) {
+          result.errors.push(`Line ${i + 1}: Missing or invalid data - NO: "${empId}", NAME: "${name}", Balance: "${balanceStr}"`);
           continue;
         }
 
@@ -181,8 +178,8 @@ export const AdminPanel = () => {
           name,
           companyId: selectedCompany,
           companyName: company?.name || 'Unknown',
-          annualBalance,
-          currentBalance,
+          annualBalance: balance,
+          currentBalance: balance,
         });
 
         result.success++;
