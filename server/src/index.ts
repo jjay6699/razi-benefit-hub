@@ -5,16 +5,20 @@ import { v4 as uuidv4 } from 'uuid';
 import crypto from 'crypto';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { existsSync, mkdirSync } from 'fs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const dbPath = path.join(__dirname, '..', 'data', 'razi.db');
+const dataDir = path.join(__dirname, '..', 'data');
+const dbPath = path.join(dataDir, 'razi.db');
 
-import { mkdirSync } from 'fs';
-mkdirSync(path.join(__dirname, '..', 'data'), { recursive: true });
+if (!existsSync(dataDir)) {
+  mkdirSync(dataDir, { recursive: true });
+}
 
 const db = new Database(dbPath);
 const app = express();
-const PORT = 3001;
+const PORT = parseInt(process.env.PORT || '3001');
+const isProduction = process.env.NODE_ENV === 'production';
 
 app.use(cors());
 app.use(express.json());
@@ -88,7 +92,6 @@ db.exec(`
 
 const adminExists = db.prepare('SELECT id FROM users WHERE email = ?').get('admin@razi.com');
 if (!adminExists) {
-  const adminId = uuidv4();
   const adminUserId = uuidv4();
   const now = new Date().toISOString();
   const defaultPasswordHash = crypto.createHash('sha256').update('password').digest('hex');
@@ -412,6 +415,14 @@ app.get('/api/companies/:id', authMiddleware, (req: Request, res: Response) => {
   }
 });
 
-app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+if (isProduction) {
+  const distPath = path.join(__dirname, '..', '..', '..', 'dist');
+  app.use(express.static(distPath));
+  app.get('*', (req: Request, res: Response) => {
+    res.sendFile(path.join(distPath, 'index.html'));
+  });
+}
+
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`Server running on http://0.0.0.0:${PORT}`);
 });
