@@ -18,7 +18,6 @@ if (!existsSync(dataDir)) {
 const db = new Database(dbPath);
 const app = express();
 const PORT = parseInt(process.env.PORT || '3001');
-const isProduction = process.env.NODE_ENV === 'production';
 
 app.use(cors());
 app.use(express.json());
@@ -415,14 +414,20 @@ app.get('/api/companies/:id', authMiddleware, (req: Request, res: Response) => {
   }
 });
 
-if (isProduction) {
-  const distPath = path.join(__dirname, '..', '..', '..', 'dist');
+const distPath = path.join(__dirname, '..', '..', 'dist');
+if (existsSync(distPath)) {
   app.use(express.static(distPath));
   app.get('*', (req: Request, res: Response) => {
     res.sendFile(path.join(distPath, 'index.html'));
+  });
+} else {
+  app.get('/', (req: Request, res: Response) => {
+    res.send('Dist folder not found. Build may have failed.');
   });
 }
 
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on http://0.0.0.0:${PORT}`);
+  console.log(`Dist path: ${distPath}`);
+  console.log(`Dist exists: ${existsSync(distPath)}`);
 });
