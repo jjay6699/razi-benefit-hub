@@ -89,14 +89,17 @@ db.exec(`
   )
 `);
 
-const adminExists = db.prepare('SELECT id FROM users WHERE email = ?').get('admin@razi.com');
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@razi.com';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'R@zi2026!SecureP@ssw0rd';
+
+const adminExists = db.prepare('SELECT id FROM users WHERE email = ?').get(ADMIN_EMAIL);
 if (!adminExists) {
   const adminUserId = uuidv4();
   const now = new Date().toISOString();
-  const defaultPasswordHash = crypto.createHash('sha256').update('password').digest('hex');
+  const defaultPasswordHash = crypto.createHash('sha256').update(ADMIN_PASSWORD).digest('hex');
 
   db.prepare(`INSERT INTO users (id, email, password_hash, created_at, updated_at) VALUES (?, ?, ?, ?, ?)`)
-    .run(adminUserId, 'admin@razi.com', defaultPasswordHash, now, now);
+    .run(adminUserId, ADMIN_EMAIL, defaultPasswordHash, now, now);
 
   db.prepare(`INSERT INTO profiles (id, user_id, full_name, role, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)`)
     .run(uuidv4(), adminUserId, 'System Admin', 'admin', now, now);
