@@ -4,14 +4,22 @@ WORKDIR /app
 
 COPY package*.json ./
 COPY server/package*.json ./server/
+RUN npm install
+
+WORKDIR /app/server
+RUN npm install
+
+WORKDIR /app
 COPY vite.config.ts ./
 COPY tsconfig*.json ./
+COPY tsconfig.app.json ./
 COPY tailwind.config.ts ./
 COPY postcss.config.js ./
 COPY index.html ./
+COPY public ./public
 COPY src ./src/
 
-RUN npm install && npm run build:all
+RUN npm run build:all
 
 EXPOSE 3001
 
