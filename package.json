@@ -9,7 +9,7 @@
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
     "preview": "vite preview",
-    "start": "node server/dist/src/index.js",
+    "start": "npx tsx server/src/index.ts",
     "build:all": "vite build && tsc -p server/tsconfig.json"
   },
   "workspaces": [
