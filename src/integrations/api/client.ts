@@ -77,6 +77,10 @@ export const api = {
     search: (query: string) => request(`/employees/search/${encodeURIComponent(query)}`),
     delete: (id: string) => request(`/employees/${id}`, { method: 'DELETE' }),
     getByCompany: (companyId: string) => request(`/employees/company/${companyId}`),
+    import: (companyId: string, employees: any[]) => request(`/employees/import/${companyId}`, {
+      method: 'POST',
+      body: { employees },
+    }),
   },
   transactions: {
     getAll: () => request('/transactions'),

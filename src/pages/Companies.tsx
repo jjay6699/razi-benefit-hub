@@ -1,10 +1,17 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Upload } from 'lucide-react';
 import { 
   Table, 
   TableBody, 
@@ -25,7 +32,7 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
-import { getCompanies, addCompany, getEmployees, deleteCompany } from '@/utils/storage';
+import { getCompanies, addCompany, getEmployees, deleteCompany, importEmployees } from '@/utils/storage';
 import { Company, Employee } from '@/types';
 import { ArrowLeft, Building2, Users, Trash2 } from 'lucide-react';
 import { formatDate } from '@/utils/dateUtils';
@@ -39,6 +46,9 @@ export const Companies = () => {
   const [loading, setLoading] = useState(true);
   const [loadingEmployees, setLoadingEmployees] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [importDialogOpen, setImportDialogOpen] = useState(false);
+  const [importing, setImporting] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -161,9 +171,15 @@ export const Companies = () => {
 
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Users className="h-5 w-5" />
-              Staff Members ({companyEmployees.length})
+            <CardTitle className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Users className="h-5 w-5" />
+                Staff Members ({companyEmployees.length})
+              </div>
+              <Button size="sm" onClick={() => setImportDialogOpen(true)}>
+                <Upload className="h-4 w-4 mr-2" />
+                Import XLS
+              </Button>
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -363,6 +379,75 @@ export const Companies = () => {
           )}
         </CardContent>
       </Card>
+
+      <Dialog open={importDialogOpen} onOpenChange={setImportDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Import Employees from XLS</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Upload an Excel file with columns: <strong>NO</strong>, <strong>NAME</strong>, <strong>PASSPORT NO</strong>, <strong>Balance</strong>, <strong>REMARK</strong>
+            </p>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".xlsx,.xls,.csv"
+              className="hidden"
+              onChange={async (e) => {
+                const file = e.target.files?.[0];
+                if (!file || !selectedCompany) return;
+
+                setImporting(true);
+                try {
+                  const XLSX = await import('xlsx');
+                  const reader = new FileReader();
+                  reader.onload = async (evt) => {
+                    const data = evt.target?.result;
+                    const workbook = XLSX.read(data, { type: 'binary' });
+                    const sheetName = workbook.SheetNames[0];
+                    const sheet = workbook.Sheets[sheetName];
+                    const jsonData = XLSX.utils.sheet_to_json(sheet);
+
+                    const result = await importEmployees(selectedCompany.id, jsonData);
+
+                    toast({
+                      title: "Import Complete",
+                      description: `Imported ${result.success} employees. ${result.duplicates.length} duplicates skipped. ${result.errors.length} errors.`,
+                    });
+
+                    if (result.success > 0) {
+                      const allEmployees = await getEmployees();
+                      const filteredEmployees = allEmployees.filter(emp => emp.companyId === selectedCompany.id);
+                      setCompanyEmployees(filteredEmployees);
+                    }
+
+                    setImportDialogOpen(false);
+                    if (fileInputRef.current) fileInputRef.current.value = '';
+                  };
+                  reader.readAsBinaryString(file);
+                } catch (error) {
+                  toast({
+                    title: "Error",
+                    description: "Failed to parse file",
+                    variant: "destructive",
+                  });
+                } finally {
+                  setImporting(false);
+                }
+              }}
+            />
+            <Button
+              onClick={() => fileInputRef.current?.click()}
+              disabled={importing}
+              className="w-full"
+            >
+              <Upload className="h-4 w-4 mr-2" />
+              {importing ? "Importing..." : "Select File"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

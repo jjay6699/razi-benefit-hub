@@ -14,6 +14,12 @@ interface ProfileWithCompany {
   updated_at: string;
 }
 
+export interface ImportResult {
+  success: number;
+  errors: string[];
+  duplicates: string[];
+}
+
 export const getAllProfiles = async (): Promise<ProfileWithCompany[]> => {
   return api.profiles.getAll();
 };
@@ -291,5 +297,14 @@ export const getEmployeeTransactions = async (employeeId: string): Promise<Trans
     }));
   } catch {
     return [];
+  }
+};
+
+export const importEmployees = async (companyId: string, employees: any[]): Promise<ImportResult> => {
+  try {
+    const result = await api.employees.import(companyId, employees);
+    return result as ImportResult;
+  } catch (error: any) {
+    return { success: 0, errors: [error.message], duplicates: [] };
   }
 };

@@ -417,6 +417,56 @@ app.get('/api/companies/:id', authMiddleware, (req: Request, res: Response) => {
   }
 });
 
+app.post('/api/employees/import/:companyId', authMiddleware, (req: Request, res: Response) => {
+  try {
+    const { companyId } = req.params;
+    const { employees } = req.body;
+
+    if (!Array.isArray(employees) || employees.length === 0) {
+      return res.status(400).json({ error: 'No employee data provided' });
+    }
+
+    const company = db.prepare('SELECT * FROM companies WHERE id = ?').get(companyId) as any;
+    if (!company) {
+      return res.status(404).json({ error: 'Company not found' });
+    }
+
+    const results = { success: 0, errors: [] as string[], duplicates: [] as string[] };
+    const now = new Date().toISOString();
+
+    for (const emp of employees) {
+      const empId = String(emp.NO || emp['NO'] || '').trim();
+      const name = String(emp.NAME || emp['NAME'] || '').trim();
+      const passportNo = String(emp['PASSPORT NO'] || emp['PASSPORT_NO'] || emp.passportNo || '').trim();
+      const balance = parseFloat(emp.Balance || emp['Balance'] || '0') || 0;
+      const remark = String(emp.REMARK || emp['REMARK'] || '').trim();
+
+      if (!empId || !name) {
+        results.errors.push(`Row skipped: missing NO or NAME`);
+        continue;
+      }
+
+      const existing = db.prepare('SELECT id FROM employees WHERE emp_id = ? AND company_id = ?').get(empId, companyId);
+      if (existing) {
+        results.duplicates.push(`${empId} - ${name}`);
+        continue;
+      }
+
+      const id = uuidv4();
+      db.prepare(`
+        INSERT INTO employees (id, emp_id, name, company_id, company_name, annual_balance, current_balance, created_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      `).run(id, empId, name, companyId, company.name, balance, balance, now);
+
+      results.success++;
+    }
+
+    res.json(results);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 const distPath = path.join(__dirname, '..', '..', 'dist');
 if (existsSync(distPath)) {
   app.use(express.static(distPath));
