@@ -23,4 +23,4 @@ RUN npm run build:all
 
 EXPOSE 3001
 
-CMD ["node", "server/dist/src/index.js"]
+CMD ["node", "dist-server/src/index.js"]
